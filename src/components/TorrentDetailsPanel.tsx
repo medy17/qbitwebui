@@ -26,15 +26,15 @@ const MIN_HEIGHT = 120
 const MAX_HEIGHT_PERCENT = 0.55
 const COLLAPSED_HEIGHT = 36
 
-function getTrackerStatus(status: number): { label: string; color: string; bg: string } {
-	const statuses: Record<number, { label: string; color: string; bg: string }> = {
-		0: { label: 'Disabled', color: 'text-[#6e6e82]', bg: 'bg-[#6e6e82]/10' },
-		1: { label: 'Not contacted', color: 'text-[#8b8b9e]', bg: 'bg-[#8b8b9e]/10' },
-		2: { label: 'Working', color: 'text-[#00d4aa]', bg: 'bg-[#00d4aa]/10' },
-		3: { label: 'Updating', color: 'text-[#f7b731]', bg: 'bg-[#f7b731]/10' },
-		4: { label: 'Error', color: 'text-[#f43f5e]', bg: 'bg-[#f43f5e]/10' },
+function getTrackerStatus(status: number): { label: string; colorVar: string } {
+	const statuses: Record<number, { label: string; colorVar: string }> = {
+		0: { label: 'Disabled', colorVar: 'var(--text-muted)' },
+		1: { label: 'Not contacted', colorVar: 'var(--text-muted)' },
+		2: { label: 'Working', colorVar: 'var(--accent)' },
+		3: { label: 'Updating', colorVar: 'var(--warning)' },
+		4: { label: 'Error', colorVar: 'var(--error)' },
 	}
-	return statuses[status] ?? { label: 'Unknown', color: 'text-[#8b8b9e]', bg: 'bg-[#8b8b9e]/10' }
+	return statuses[status] ?? { label: 'Unknown', colorVar: 'var(--text-muted)' }
 }
 
 function LoadingSkeleton() {
@@ -42,7 +42,7 @@ function LoadingSkeleton() {
 		<div className="p-4 space-y-3 animate-pulse">
 			<div className="grid grid-cols-4 gap-3">
 				{[...Array(8)].map((_, i) => (
-					<div key={i} className="h-10 rounded bg-white/[0.03]" />
+					<div key={i} className="h-10 rounded" style={{ backgroundColor: 'color-mix(in srgb, white 3%, transparent)' }} />
 				))}
 			</div>
 		</div>
@@ -51,7 +51,7 @@ function LoadingSkeleton() {
 
 function EmptyState({ message }: { message: string }) {
 	return (
-		<div className="flex items-center justify-center h-full text-[#4a4a5a] text-xs tracking-wide uppercase">
+		<div className="flex items-center justify-center h-full text-xs tracking-wide uppercase" style={{ color: 'var(--text-muted)' }}>
 			{message}
 		</div>
 	)
@@ -59,9 +59,9 @@ function EmptyState({ message }: { message: string }) {
 
 function InfoItem({ label, value, accent }: { label: string; value: string | number; accent?: boolean }) {
 	return (
-		<div className="flex flex-col gap-0.5 px-3 py-2 rounded bg-white/[0.025] border border-white/[0.05]">
-			<span className="text-[9px] uppercase tracking-widest text-[#8a8a9e]">{label}</span>
-			<span className={`text-xs font-mono ${accent ? 'text-[#00d4aa]' : 'text-[#e8e8f0]'}`}>{value}</span>
+		<div className="flex flex-col gap-0.5 px-3 py-2 rounded border" style={{ backgroundColor: 'color-mix(in srgb, white 2.5%, transparent)', borderColor: 'var(--border)' }}>
+			<span className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{label}</span>
+			<span className="text-xs font-mono" style={{ color: accent ? 'var(--accent)' : 'var(--text-primary)' }}>{value}</span>
 		</div>
 	)
 }
@@ -90,9 +90,9 @@ function GeneralTab({ hash }: { hash: string }) {
 				<InfoItem label="Piece Size" value={formatSize(p.piece_size)} />
 				<InfoItem label="Seeding" value={formatDuration(p.seeding_time)} />
 			</div>
-			<div className="mt-3 px-3 py-2 rounded bg-white/[0.025] border border-white/[0.05]">
-				<span className="text-[9px] uppercase tracking-widest text-[#8a8a9e]">Save Path</span>
-				<div className="text-xs font-mono text-[#e8e8f0] mt-0.5 break-all">{p.save_path}</div>
+			<div className="mt-3 px-3 py-2 rounded border" style={{ backgroundColor: 'color-mix(in srgb, white 2.5%, transparent)', borderColor: 'var(--border)' }}>
+				<span className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Save Path</span>
+				<div className="text-xs font-mono mt-0.5 break-all" style={{ color: 'var(--text-primary)' }}>{p.save_path}</div>
 			</div>
 		</div>
 	)
@@ -106,8 +106,8 @@ function TrackersTab({ hash }: { hash: string }) {
 	return (
 		<div className="overflow-auto h-full">
 			<table className="w-full text-xs">
-				<thead className="sticky top-0 bg-[#0c0c12]/95 backdrop-blur-sm">
-					<tr className="text-[#8a8a9e] text-left border-b border-white/[0.06]">
+				<thead className="sticky top-0 backdrop-blur-sm" style={{ backgroundColor: 'color-mix(in srgb, var(--bg-secondary) 95%, transparent)' }}>
+					<tr className="text-left border-b" style={{ color: 'var(--text-muted)', borderColor: 'var(--border)' }}>
 						<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest">Tier</th>
 						<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest">URL</th>
 						<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest">Status</th>
@@ -120,18 +120,21 @@ function TrackersTab({ hash }: { hash: string }) {
 					{filtered.map((t: Tracker, i: number) => {
 						const status = getTrackerStatus(t.status)
 						return (
-							<tr key={i} className="border-t border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-								<td className="px-3 py-1.5 text-[#9090a4] font-mono">{t.tier}</td>
-								<td className="px-3 py-1.5 text-[#e0e0ea] font-mono truncate max-w-[200px]" title={t.url}>{t.url}</td>
+							<tr key={i} className="border-t transition-colors" style={{ borderColor: 'var(--border)' }}>
+								<td className="px-3 py-1.5 font-mono" style={{ color: 'var(--text-muted)' }}>{t.tier}</td>
+								<td className="px-3 py-1.5 font-mono truncate max-w-[200px]" style={{ color: 'var(--text-primary)' }} title={t.url}>{t.url}</td>
 								<td className="px-3 py-1.5">
-									<span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium ${status.color} ${status.bg}`}>
-										<span className={`w-1 h-1 rounded-full ${status.color.replace('text-', 'bg-')}`} />
+									<span
+										className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium"
+										style={{ color: status.colorVar, backgroundColor: `color-mix(in srgb, ${status.colorVar} 10%, transparent)` }}
+									>
+										<span className="w-1 h-1 rounded-full" style={{ backgroundColor: status.colorVar }} />
 										{status.label}
 									</span>
 								</td>
-								<td className="px-3 py-1.5 text-[#00d4aa] text-right font-mono">{t.num_seeds}</td>
-								<td className="px-3 py-1.5 text-[#9090a4] text-right font-mono">{t.num_peers}</td>
-								<td className="px-3 py-1.5 text-[#7a7a8e] truncate max-w-[120px]" title={t.msg}>{t.msg || '—'}</td>
+								<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--accent)' }}>{t.num_seeds}</td>
+								<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>{t.num_peers}</td>
+								<td className="px-3 py-1.5 truncate max-w-[120px]" style={{ color: 'var(--text-muted)' }} title={t.msg}>{t.msg || '—'}</td>
 							</tr>
 						)
 					})}
@@ -149,8 +152,8 @@ function PeersTab({ hash }: { hash: string }) {
 	return (
 		<div className="overflow-auto h-full">
 			<table className="w-full text-xs">
-				<thead className="sticky top-0 bg-[#0c0c12]/95 backdrop-blur-sm">
-					<tr className="text-[#8a8a9e] text-left border-b border-white/[0.06]">
+				<thead className="sticky top-0 backdrop-blur-sm" style={{ backgroundColor: 'color-mix(in srgb, var(--bg-secondary) 95%, transparent)' }}>
+					<tr className="text-left border-b" style={{ color: 'var(--text-muted)', borderColor: 'var(--border)' }}>
 						<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest">IP</th>
 						<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest">Client</th>
 						<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest">Flags</th>
@@ -161,23 +164,23 @@ function PeersTab({ hash }: { hash: string }) {
 				</thead>
 				<tbody>
 					{peers.map((p: Peer, i: number) => (
-						<tr key={i} className="border-t border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+						<tr key={i} className="border-t transition-colors" style={{ borderColor: 'var(--border)' }}>
 							<td className="px-3 py-1.5 font-mono">
-								<span className="text-[#e0e0ea]">{p.ip}</span>
-								<span className="text-[#7a7a8e]">:{p.port}</span>
+								<span style={{ color: 'var(--text-primary)' }}>{p.ip}</span>
+								<span style={{ color: 'var(--text-muted)' }}>:{p.port}</span>
 							</td>
-							<td className="px-3 py-1.5 text-[#9090a4] truncate max-w-[100px]" title={p.client}>{p.client}</td>
-							<td className="px-3 py-1.5 text-[#7a7a8e] font-mono">{p.flags || '—'}</td>
+							<td className="px-3 py-1.5 truncate max-w-[100px]" style={{ color: 'var(--text-muted)' }} title={p.client}>{p.client}</td>
+							<td className="px-3 py-1.5 font-mono" style={{ color: 'var(--text-muted)' }}>{p.flags || '—'}</td>
 							<td className="px-3 py-1.5 text-right">
 								<div className="flex items-center justify-end gap-1.5">
-									<div className="w-10 h-1 rounded-full bg-[#1a1a24] overflow-hidden">
-										<div className="h-full bg-[#00d4aa] rounded-full" style={{ width: `${p.progress * 100}%` }} />
+									<div className="w-10 h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+										<div className="h-full rounded-full" style={{ width: `${p.progress * 100}%`, backgroundColor: 'var(--accent)' }} />
 									</div>
-									<span className="text-[#9090a4] font-mono w-7 text-right">{(p.progress * 100).toFixed(0)}%</span>
+									<span className="font-mono w-7 text-right" style={{ color: 'var(--text-muted)' }}>{(p.progress * 100).toFixed(0)}%</span>
 								</div>
 							</td>
-							<td className="px-3 py-1.5 text-[#00d4aa] text-right font-mono">{formatSpeed(p.dl_speed, false)}</td>
-							<td className="px-3 py-1.5 text-[#f7b731] text-right font-mono">{formatSpeed(p.up_speed, false)}</td>
+							<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--accent)' }}>{formatSpeed(p.dl_speed, false)}</td>
+							<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--warning)' }}>{formatSpeed(p.up_speed, false)}</td>
 						</tr>
 					))}
 				</tbody>
@@ -193,11 +196,11 @@ function HttpSourcesTab({ hash }: { hash: string }) {
 	return (
 		<div className="p-3 space-y-1.5 overflow-auto h-full">
 			{seeds.map((s, i) => (
-				<div key={i} className="flex items-center gap-2 px-3 py-2 rounded bg-white/[0.025] border border-white/[0.05]">
-					<svg className="w-3 h-3 text-[#00d4aa] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+				<div key={i} className="flex items-center gap-2 px-3 py-2 rounded border" style={{ backgroundColor: 'color-mix(in srgb, white 2.5%, transparent)', borderColor: 'var(--border)' }}>
+					<svg className="w-3 h-3 shrink-0" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
 						<path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
 					</svg>
-					<span className="text-xs font-mono text-[#e0e0ea] break-all">{s.url}</span>
+					<span className="text-xs font-mono break-all" style={{ color: 'var(--text-primary)' }}>{s.url}</span>
 				</div>
 			))}
 		</div>
@@ -211,8 +214,8 @@ function ContentTab({ hash }: { hash: string }) {
 	return (
 		<div className="overflow-auto h-full">
 			<table className="w-full text-xs">
-				<thead className="sticky top-0 bg-[#0c0c12]/95 backdrop-blur-sm">
-					<tr className="text-[#8a8a9e] text-left border-b border-white/[0.06]">
+				<thead className="sticky top-0 backdrop-blur-sm" style={{ backgroundColor: 'color-mix(in srgb, var(--bg-secondary) 95%, transparent)' }}>
+					<tr className="text-left border-b" style={{ color: 'var(--text-muted)', borderColor: 'var(--border)' }}>
 						<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest">Name</th>
 						<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest text-right">Size</th>
 						<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest text-right">Progress</th>
@@ -224,31 +227,31 @@ function ContentTab({ hash }: { hash: string }) {
 						const progress = f.progress * 100
 						const done = progress >= 100
 						return (
-							<tr key={i} className="border-t border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+							<tr key={i} className="border-t transition-colors" style={{ borderColor: 'var(--border)' }}>
 								<td className="px-3 py-1.5">
 									<div className="flex items-center gap-2">
 										{done ? (
-											<svg className="w-3 h-3 text-[#00d4aa] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+											<svg className="w-3 h-3 shrink-0" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
 												<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
 											</svg>
 										) : (
-											<svg className="w-3 h-3 text-[#7a7a8e] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+											<svg className="w-3 h-3 shrink-0" style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
 												<path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
 											</svg>
 										)}
-										<span className="text-[#e0e0ea] truncate max-w-[280px]" title={f.name}>{f.name}</span>
+										<span className="truncate max-w-[280px]" style={{ color: 'var(--text-primary)' }} title={f.name}>{f.name}</span>
 									</div>
 								</td>
-								<td className="px-3 py-1.5 text-[#9090a4] text-right font-mono">{formatSize(f.size)}</td>
+								<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>{formatSize(f.size)}</td>
 								<td className="px-3 py-1.5 text-right">
 									<div className="flex items-center justify-end gap-1.5">
-										<div className="w-14 h-1 rounded-full bg-[#1a1a24] overflow-hidden">
-											<div className={`h-full rounded-full ${done ? 'bg-[#00d4aa]' : 'bg-[#7a7a8e]'}`} style={{ width: `${progress}%` }} />
+										<div className="w-14 h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+											<div className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: done ? 'var(--accent)' : 'var(--text-muted)' }} />
 										</div>
-										<span className={`font-mono w-9 text-right ${done ? 'text-[#00d4aa]' : 'text-[#9090a4]'}`}>{progress.toFixed(0)}%</span>
+										<span className="font-mono w-9 text-right" style={{ color: done ? 'var(--accent)' : 'var(--text-muted)' }}>{progress.toFixed(0)}%</span>
 									</div>
 								</td>
-								<td className="px-3 py-1.5 text-[#7a7a8e] text-right font-mono">{f.priority}</td>
+								<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>{f.priority}</td>
 							</tr>
 						)
 					})}
@@ -296,22 +299,22 @@ export function TorrentDetailsPanel({ hash, name, expanded, onToggle, height, on
 
 	return (
 		<div
-			className="flex flex-col bg-[#0c0c12] transition-[height] duration-300 ease-out"
-			style={{ height: panelHeight }}
+			className="flex flex-col transition-[height] duration-300 ease-out"
+			style={{ height: panelHeight, backgroundColor: 'var(--bg-secondary)' }}
 		>
 			<div
 				onMouseDown={expanded ? handleMouseDown : undefined}
-				className={`h-[3px] shrink-0 bg-gradient-to-r from-[#00d4aa]/60 via-[#00d4aa]/30 to-[#00d4aa]/60 ${
-					expanded ? `cursor-ns-resize ${dragging ? 'opacity-100' : 'opacity-70 hover:opacity-100'}` : ''
-				} transition-opacity`}
+				className={`h-[3px] shrink-0 ${expanded ? `cursor-ns-resize ${dragging ? 'opacity-100' : 'opacity-70 hover:opacity-100'}` : ''} transition-opacity`}
+				style={{ background: 'linear-gradient(to right, color-mix(in srgb, var(--accent) 60%, transparent), color-mix(in srgb, var(--accent) 30%, transparent), color-mix(in srgb, var(--accent) 60%, transparent))' }}
 			/>
 			<div
-				className="flex items-center gap-2 px-3 shrink-0 bg-[#0e0e14] cursor-pointer select-none border-b border-white/[0.04]"
-				style={{ height: COLLAPSED_HEIGHT - 3 }}
+				className="flex items-center gap-2 px-3 shrink-0 cursor-pointer select-none border-b"
+				style={{ height: COLLAPSED_HEIGHT - 3, backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
 				onClick={onToggle}
 			>
 				<button
-					className="p-1 rounded hover:bg-white/[0.05] text-[#6e6e82] hover:text-[#00d4aa] transition-colors"
+					className="p-1 rounded transition-colors"
+					style={{ color: 'var(--text-muted)' }}
 					onClick={(e) => { e.stopPropagation(); onToggle() }}
 				>
 					<svg
@@ -325,14 +328,14 @@ export function TorrentDetailsPanel({ hash, name, expanded, onToggle, height, on
 					</svg>
 				</button>
 
-				<div className="w-px h-4 bg-white/[0.06]" />
+				<div className="w-px h-4" style={{ backgroundColor: 'var(--border)' }} />
 
-				<span className="text-[10px] uppercase tracking-widest text-[#7a7a8e] font-medium">Details</span>
+				<span className="text-[10px] uppercase tracking-widest font-medium" style={{ color: 'var(--text-muted)' }}>Details</span>
 
 				{hash && name && (
 					<>
-						<div className="w-px h-4 bg-white/[0.06]" />
-						<span className="text-xs text-[#8b8b9e] truncate max-w-[300px]" title={name}>{name}</span>
+						<div className="w-px h-4" style={{ backgroundColor: 'var(--border)' }} />
+						<span className="text-xs truncate max-w-[300px]" style={{ color: 'var(--text-muted)' }} title={name}>{name}</span>
 					</>
 				)}
 
@@ -344,11 +347,12 @@ export function TorrentDetailsPanel({ hash, name, expanded, onToggle, height, on
 							<button
 								key={t.id}
 								onClick={(e) => { e.stopPropagation(); setTab(t.id) }}
-								className={`flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium uppercase tracking-wide transition-all ${
-									tab === t.id
-										? 'bg-white/[0.08] text-[#c8c8d4] border border-white/[0.1]'
-										: 'text-[#6e6e82] hover:text-[#a0a0b0] hover:bg-white/[0.03] border border-transparent'
-								}`}
+								className="flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium uppercase tracking-wide transition-all border"
+								style={{
+									backgroundColor: tab === t.id ? 'color-mix(in srgb, white 8%, transparent)' : 'transparent',
+									color: tab === t.id ? 'var(--text-secondary)' : 'var(--text-muted)',
+									borderColor: tab === t.id ? 'color-mix(in srgb, white 10%, transparent)' : 'transparent',
+								}}
 							>
 								<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
 									{t.icon}
@@ -361,7 +365,7 @@ export function TorrentDetailsPanel({ hash, name, expanded, onToggle, height, on
 			</div>
 
 			{expanded && (
-				<div className="flex-1 overflow-hidden border-t border-white/[0.03]">
+				<div className="flex-1 overflow-hidden border-t" style={{ borderColor: 'var(--border)' }}>
 					{hash ? (
 						<>
 							{tab === 'general' && <GeneralTab hash={hash} />}
@@ -373,10 +377,10 @@ export function TorrentDetailsPanel({ hash, name, expanded, onToggle, height, on
 					) : (
 						<div className="flex items-center justify-center h-full">
 							<div className="text-center">
-								<svg className="w-8 h-8 mx-auto mb-2 text-[#2a2a34]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+								<svg className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--border)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
 									<path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" />
 								</svg>
-								<p className="text-xs text-[#4a4a5a] uppercase tracking-widest">Select a torrent</p>
+								<p className="text-xs uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Select a torrent</p>
 							</div>
 						</div>
 					)}

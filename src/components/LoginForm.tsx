@@ -30,58 +30,59 @@ export function LoginForm({ onSuccess }: Props) {
 	}
 
 	return (
-		<div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-			<div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#0f1922] via-[#07070a] to-[#07070a]" />
-			<div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#00d4aa]/5 rounded-full blur-3xl" />
-			<div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-[#8b5cf6]/5 rounded-full blur-3xl" />
+		<div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ backgroundColor: 'var(--bg-primary)' }}>
+			<div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at top, color-mix(in srgb, var(--accent) 8%, var(--bg-primary)), var(--bg-primary))' }} />
+			<div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full blur-3xl" style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 5%, transparent)' }} />
 
 			<form
 				onSubmit={handleSubmit}
 				className="relative w-full max-w-sm opacity-0 animate-in"
 			>
-				<div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-white/[0.08] to-transparent" />
-				<div className="relative bg-[#0d0d12]/80 backdrop-blur-xl rounded-2xl p-8 border border-white/[0.06]">
+				<div className="absolute -inset-px rounded-2xl" style={{ background: 'linear-gradient(to bottom, color-mix(in srgb, white 8%, transparent), transparent)' }} />
+				<div className="relative backdrop-blur-xl rounded-2xl p-8 border" style={{ backgroundColor: 'color-mix(in srgb, var(--bg-secondary) 80%, transparent)', borderColor: 'var(--border)' }}>
 					<div className="flex items-center gap-3 mb-8">
-						<div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00d4aa] to-[#00a884] flex items-center justify-center">
-							<svg className="w-5 h-5 text-[#07070a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+						<div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, var(--accent), color-mix(in srgb, var(--accent) 70%, black))' }}>
+							<svg className="w-5 h-5" style={{ color: 'var(--accent-contrast)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
 								<path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
 							</svg>
 						</div>
 						<div>
-							<h1 className="text-lg font-semibold tracking-tight">qbitwebui</h1>
+							<h1 className="text-lg font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>qbitwebui</h1>
 						</div>
 					</div>
 
 					{error && (
-						<div className="mb-6 px-4 py-3 rounded-lg bg-[#f43f5e]/10 border border-[#f43f5e]/20 text-[#f43f5e] text-sm font-medium">
+						<div className="mb-6 px-4 py-3 rounded-lg text-sm font-medium" style={{ backgroundColor: 'color-mix(in srgb, var(--error) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--error) 20%, transparent)', color: 'var(--error)' }}>
 							{error}
 						</div>
 					)}
 
 					<div className="space-y-4">
 						<div className="group">
-							<label className="block text-xs font-medium text-[#8b8b9e] mb-2 uppercase tracking-wider">
+							<label className="block text-xs font-medium mb-2 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
 								Username
 							</label>
 							<input
 								type="text"
 								value={username}
 								onChange={(e) => setUsername(e.target.value)}
-								className="w-full px-4 py-3 bg-[#0a0a0f] rounded-lg border border-white/[0.08] text-[#e8e8ed] placeholder-[#6e6e82] transition-all duration-200 focus:border-[#00d4aa]/50 focus:bg-[#0c0c12] font-mono text-sm"
+								className="w-full px-4 py-3 rounded-lg border text-sm font-mono transition-all duration-200"
+								style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 								placeholder="admin"
 								autoComplete="username"
 							/>
 						</div>
 
 						<div className="group">
-							<label className="block text-xs font-medium text-[#8b8b9e] mb-2 uppercase tracking-wider">
+							<label className="block text-xs font-medium mb-2 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
 								Password
 							</label>
 							<input
 								type="password"
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
-								className="w-full px-4 py-3 bg-[#0a0a0f] rounded-lg border border-white/[0.08] text-[#e8e8ed] placeholder-[#6e6e82] transition-all duration-200 focus:border-[#00d4aa]/50 focus:bg-[#0c0c12] font-mono text-sm"
+								className="w-full px-4 py-3 rounded-lg border text-sm font-mono transition-all duration-200"
+								style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 								placeholder="••••••••"
 								autoComplete="current-password"
 							/>
@@ -92,15 +93,14 @@ export function LoginForm({ onSuccess }: Props) {
 						type="submit"
 						disabled={loading}
 						className="relative w-full mt-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
+						style={{ background: 'linear-gradient(to right, var(--accent), color-mix(in srgb, var(--accent) 80%, black))' }}
 					>
-						<div className="absolute inset-0 bg-gradient-to-r from-[#00d4aa] to-[#00a884] transition-transform duration-200 group-hover:scale-[1.02]" />
-						<div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-[#00e4b8] to-[#00b894]" />
-						<span className="relative text-[#07070a] font-semibold">
+						<span className="relative font-semibold" style={{ color: 'var(--accent-contrast)' }}>
 							{loading ? 'Connecting...' : 'Sign In'}
 						</span>
 					</button>
 
-					<p className="mt-6 text-center text-xs text-[#6e6e82]">
+					<p className="mt-6 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
 						Secure connection to your qBittorrent instance
 					</p>
 				</div>

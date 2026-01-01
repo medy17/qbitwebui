@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ThemeProvider } from './contexts/ThemeProvider'
 import { Layout } from './components/Layout'
 import { LoginForm } from './components/LoginForm'
 import { TorrentList } from './components/TorrentList'
@@ -26,14 +27,20 @@ export default function App() {
 	}
 
 	if (!authenticated) {
-		return <LoginForm onSuccess={() => setAuthenticated(true)} />
+		return (
+			<ThemeProvider>
+				<LoginForm onSuccess={() => setAuthenticated(true)} />
+			</ThemeProvider>
+		)
 	}
 
 	return (
-		<QueryClientProvider client={queryClient}>
-			<Layout>
-				<TorrentList />
-			</Layout>
-		</QueryClientProvider>
+		<ThemeProvider>
+			<QueryClientProvider client={queryClient}>
+				<Layout>
+					<TorrentList />
+				</Layout>
+			</QueryClientProvider>
+		</ThemeProvider>
 	)
 }

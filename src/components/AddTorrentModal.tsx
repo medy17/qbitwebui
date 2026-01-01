@@ -67,18 +67,18 @@ export function AddTorrentModal({ open, onClose }: Props) {
 	return (
 		<div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}>
 			<div className="relative w-full max-w-md mx-4 opacity-0 animate-in">
-				<div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-[#00d4aa]/20 to-transparent" />
-				<div className="relative bg-[#0d0d12] rounded-2xl border border-white/[0.06]">
-					<div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
+				<div className="absolute -inset-px rounded-2xl" style={{ background: 'linear-gradient(to bottom, color-mix(in srgb, var(--accent) 20%, transparent), transparent)' }} />
+				<div className="relative rounded-2xl border" style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}>
+					<div className="flex items-center justify-between p-5 border-b" style={{ borderColor: 'var(--border)' }}>
 						<div className="flex items-center gap-3">
-							<div className="w-10 h-10 rounded-xl bg-[#00d4aa]/10 flex items-center justify-center">
-								<svg className="w-5 h-5 text-[#00d4aa]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+							<div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}>
+								<svg className="w-5 h-5" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
 									<path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
 								</svg>
 							</div>
-							<h3 className="text-base font-semibold text-[#e8e8ed]">Add Torrent</h3>
+							<h3 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Add Torrent</h3>
 						</div>
-						<button onClick={onClose} className="p-2 rounded-lg hover:bg-white/[0.04] text-[#8b8b9e] hover:text-[#c0c0cc] transition-colors">
+						<button onClick={onClose} className="p-2 rounded-lg transition-colors hover:opacity-80" style={{ color: 'var(--text-muted)' }}>
 							<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
 								<path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
 							</svg>
@@ -86,18 +86,26 @@ export function AddTorrentModal({ open, onClose }: Props) {
 					</div>
 
 					<form onSubmit={handleSubmit} className="p-5 space-y-4">
-						<div className="flex p-1 rounded-xl bg-[#0a0a0f] border border-white/[0.06]">
+						<div className="flex p-1 rounded-xl border" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}>
 							<button
 								type="button"
 								onClick={() => setTab('link')}
-								className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${tab === 'link' ? 'bg-[#00d4aa] text-[#07070a]' : 'text-[#8b8b9e] hover:text-[#c0c0cc]'}`}
+								className="flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all"
+								style={{
+									backgroundColor: tab === 'link' ? 'var(--accent)' : 'transparent',
+									color: tab === 'link' ? 'var(--accent-contrast)' : 'var(--text-muted)',
+								}}
 							>
 								Magnet / URL
 							</button>
 							<button
 								type="button"
 								onClick={() => setTab('file')}
-								className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${tab === 'file' ? 'bg-[#00d4aa] text-[#07070a]' : 'text-[#8b8b9e] hover:text-[#c0c0cc]'}`}
+								className="flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all"
+								style={{
+									backgroundColor: tab === 'file' ? 'var(--accent)' : 'transparent',
+									color: tab === 'file' ? 'var(--accent-contrast)' : 'var(--text-muted)',
+								}}
 							>
 								Torrent File
 							</button>
@@ -105,18 +113,19 @@ export function AddTorrentModal({ open, onClose }: Props) {
 
 						{tab === 'link' ? (
 							<div>
-								<label className="block text-xs font-medium text-[#8b8b9e] mb-2">Magnet link or URL</label>
+								<label className="block text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Magnet link or URL</label>
 								<textarea
 									value={url}
 									onChange={(e) => setUrl(e.target.value)}
 									placeholder="magnet:?xt=urn:btih:... or https://..."
 									rows={3}
-									className="w-full px-4 py-3 bg-[#0a0a0f] rounded-xl border border-white/[0.08] text-sm text-[#e8e8ed] placeholder-[#6e6e82] resize-none focus:border-[#00d4aa]/40 focus:outline-none transition-colors"
+									className="w-full px-4 py-3 rounded-xl border text-sm resize-none focus:outline-none transition-colors"
+									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 								/>
 							</div>
 						) : (
 							<div>
-								<label className="block text-xs font-medium text-[#8b8b9e] mb-2">Torrent file</label>
+								<label className="block text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Torrent file</label>
 								<input
 									ref={fileInputRef}
 									type="file"
@@ -127,17 +136,18 @@ export function AddTorrentModal({ open, onClose }: Props) {
 								<button
 									type="button"
 									onClick={() => fileInputRef.current?.click()}
-									className="w-full py-6 px-4 bg-[#0a0a0f] rounded-xl border border-dashed border-white/[0.12] hover:border-[#00d4aa]/40 text-sm transition-colors"
+									className="w-full py-6 px-4 rounded-xl border border-dashed text-sm transition-colors hover:opacity-80"
+									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 								>
 									{file ? (
-										<div className="flex items-center justify-center gap-2 text-[#e8e8ed]">
-											<svg className="w-5 h-5 text-[#00d4aa]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+										<div className="flex items-center justify-center gap-2" style={{ color: 'var(--text-primary)' }}>
+											<svg className="w-5 h-5" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
 												<path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 											</svg>
 											<span className="truncate max-w-[200px]">{file.name}</span>
 										</div>
 									) : (
-										<div className="flex flex-col items-center gap-2 text-[#8b8b9e]">
+										<div className="flex flex-col items-center gap-2" style={{ color: 'var(--text-muted)' }}>
 											<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
 												<path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
 											</svg>
@@ -150,11 +160,12 @@ export function AddTorrentModal({ open, onClose }: Props) {
 
 						<div className="grid grid-cols-2 gap-3">
 							<div>
-								<label className="block text-xs font-medium text-[#8b8b9e] mb-2">Category</label>
+								<label className="block text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Category</label>
 								<select
 									value={category}
 									onChange={(e) => setCategory(e.target.value)}
-									className="w-full px-3 py-2.5 bg-[#0a0a0f] rounded-xl border border-white/[0.08] text-sm text-[#e8e8ed] focus:border-[#00d4aa]/40 focus:outline-none transition-colors appearance-none cursor-pointer"
+									className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none transition-colors appearance-none cursor-pointer"
+									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 								>
 									<option value="">None</option>
 									{Object.keys(categories).map((cat) => (
@@ -163,13 +174,14 @@ export function AddTorrentModal({ open, onClose }: Props) {
 								</select>
 							</div>
 							<div>
-								<label className="block text-xs font-medium text-[#8b8b9e] mb-2">Save path</label>
+								<label className="block text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Save path</label>
 								<input
 									type="text"
 									value={savepath}
 									onChange={(e) => setSavepath(e.target.value)}
 									placeholder="Default"
-									className="w-full px-3 py-2.5 bg-[#0a0a0f] rounded-xl border border-white/[0.08] text-sm text-[#e8e8ed] placeholder-[#6e6e82] focus:border-[#00d4aa]/40 focus:outline-none transition-colors"
+									className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none transition-colors"
+									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 								/>
 							</div>
 						</div>
@@ -182,14 +194,20 @@ export function AddTorrentModal({ open, onClose }: Props) {
 									onChange={(e) => setStartTorrent(e.target.checked)}
 									className="sr-only peer"
 								/>
-								<div className="w-4 h-4 rounded border-2 border-white/20 peer-checked:border-[#00d4aa] peer-checked:bg-[#00d4aa] flex items-center justify-center transition-colors">
+								<div
+									className="w-4 h-4 rounded border-2 flex items-center justify-center transition-colors"
+									style={{
+										borderColor: startTorrent ? 'var(--accent)' : 'var(--border)',
+										backgroundColor: startTorrent ? 'var(--accent)' : 'transparent',
+									}}
+								>
 									{startTorrent && (
-										<svg className="w-2.5 h-2.5 text-[#07070a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+										<svg className="w-2.5 h-2.5" style={{ color: 'var(--accent-contrast)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
 											<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
 										</svg>
 									)}
 								</div>
-								<span className="text-xs text-[#8b8b9e]">Start torrent</span>
+								<span className="text-xs" style={{ color: 'var(--text-muted)' }}>Start torrent</span>
 							</label>
 							<label className="flex items-center gap-2 cursor-pointer">
 								<input
@@ -198,14 +216,20 @@ export function AddTorrentModal({ open, onClose }: Props) {
 									onChange={(e) => setSequential(e.target.checked)}
 									className="sr-only peer"
 								/>
-								<div className="w-4 h-4 rounded border-2 border-white/20 peer-checked:border-[#00d4aa] peer-checked:bg-[#00d4aa] flex items-center justify-center transition-colors">
+								<div
+									className="w-4 h-4 rounded border-2 flex items-center justify-center transition-colors"
+									style={{
+										borderColor: sequential ? 'var(--accent)' : 'var(--border)',
+										backgroundColor: sequential ? 'var(--accent)' : 'transparent',
+									}}
+								>
 									{sequential && (
-										<svg className="w-2.5 h-2.5 text-[#07070a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+										<svg className="w-2.5 h-2.5" style={{ color: 'var(--accent-contrast)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
 											<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
 										</svg>
 									)}
 								</div>
-								<span className="text-xs text-[#8b8b9e]">Sequential</span>
+								<span className="text-xs" style={{ color: 'var(--text-muted)' }}>Sequential</span>
 							</label>
 						</div>
 
@@ -213,14 +237,16 @@ export function AddTorrentModal({ open, onClose }: Props) {
 							<button
 								type="button"
 								onClick={onClose}
-								className="flex-1 py-3 rounded-xl bg-[#13131a] hover:bg-[#1a1a24] border border-white/[0.06] text-[#8b8b9e] text-sm font-medium transition-colors"
+								className="flex-1 py-3 rounded-xl border text-sm font-medium transition-colors hover:opacity-80"
+								style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)', color: 'var(--text-muted)' }}
 							>
 								Cancel
 							</button>
 							<button
 								type="submit"
 								disabled={addMutation.isPending || (tab === 'link' && !url.trim()) || (tab === 'file' && !file)}
-								className="flex-1 py-3 rounded-xl bg-[#00d4aa] hover:bg-[#00c49a] disabled:opacity-50 disabled:cursor-not-allowed text-[#07070a] text-sm font-semibold transition-colors"
+								className="flex-1 py-3 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 							>
 								{addMutation.isPending ? 'Adding...' : 'Add Torrent'}
 							</button>

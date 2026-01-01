@@ -47,14 +47,13 @@ export function FilterBar({ filter, onFilterChange }: Props) {
 				<button
 					key={f.value}
 					onClick={() => onFilterChange(f.value)}
-					className={`relative flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
-						filter === f.value
-							? 'text-[#07070a]'
-							: 'text-[#9090a0] hover:text-[#c0c0cc] hover:bg-white/[0.04]'
-					}`}
+					className="relative flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200"
+					style={{
+						color: filter === f.value ? 'var(--accent-contrast)' : 'var(--text-muted)',
+					}}
 				>
 					{filter === f.value && (
-						<div className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#00d4aa] to-[#00a884] shadow-lg shadow-[#00d4aa]/20" />
+						<div className="absolute inset-0 rounded-lg shadow-lg" style={{ background: 'linear-gradient(to right, var(--accent), color-mix(in srgb, var(--accent) 80%, black))', boxShadow: '0 4px 14px color-mix(in srgb, var(--accent) 20%, transparent)' }} />
 					)}
 					<svg className="relative w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
 						{f.icon}
@@ -69,7 +68,7 @@ export function FilterBar({ filter, onFilterChange }: Props) {
 export function SearchInput({ value, onChange }: { value: string; onChange: (s: string) => void }) {
 	return (
 		<div className="relative">
-			<svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6e6e82]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+			<svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
 				<path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
 			</svg>
 			<input
@@ -77,7 +76,8 @@ export function SearchInput({ value, onChange }: { value: string; onChange: (s: 
 				placeholder="Search torrents..."
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
-				className="w-64 pl-10 pr-4 py-2.5 bg-[#13131a] rounded-xl border border-white/[0.08] text-sm text-[#e8e8ed] placeholder-[#6e6e82] transition-all duration-200 focus:border-[#00d4aa]/40 focus:bg-[#16161f]"
+				className="w-64 pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all duration-200"
+				style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 			/>
 		</div>
 	)
@@ -109,9 +109,11 @@ function Dropdown<T extends string>({ value, onChange, options, placeholder, ico
 		<div ref={ref} className="relative">
 			<button
 				onClick={() => setOpen(!open)}
-				className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
-					value ? 'text-[#00d4aa] bg-[#00d4aa]/10' : 'text-[#9090a0] hover:text-[#c0c0cc] hover:bg-white/[0.04]'
-				}`}
+				className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200"
+				style={{
+					color: value ? 'var(--accent)' : 'var(--text-muted)',
+					backgroundColor: value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+				}}
 			>
 				<svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
 					{icon}
@@ -122,12 +124,17 @@ function Dropdown<T extends string>({ value, onChange, options, placeholder, ico
 				</svg>
 			</button>
 			{open && (
-				<div className="absolute top-full left-0 mt-1 min-w-[180px] max-h-[300px] overflow-auto bg-[#13131a] rounded-lg border border-white/[0.08] shadow-xl z-50">
+				<div
+					className="absolute top-full left-0 mt-1 min-w-[180px] max-h-[300px] overflow-auto rounded-lg border shadow-xl z-[100]"
+					style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
+				>
 					<button
 						onClick={() => { onChange(null); setOpen(false) }}
-						className={`w-full flex items-center justify-between px-3 py-2 text-xs text-left transition-colors ${
-							!value ? 'text-[#00d4aa] bg-[#00d4aa]/10' : 'text-[#9090a0] hover:text-[#c0c0cc] hover:bg-white/[0.04]'
-						}`}
+						className="w-full flex items-center justify-between px-3 py-2 text-xs text-left transition-colors"
+						style={{
+							color: !value ? 'var(--accent)' : 'var(--text-muted)',
+							backgroundColor: !value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+						}}
 					>
 						<span>All</span>
 					</button>
@@ -135,12 +142,14 @@ function Dropdown<T extends string>({ value, onChange, options, placeholder, ico
 						<button
 							key={o.value}
 							onClick={() => { onChange(o.value); setOpen(false) }}
-							className={`w-full flex items-center justify-between px-3 py-2 text-xs text-left transition-colors ${
-								value === o.value ? 'text-[#00d4aa] bg-[#00d4aa]/10' : 'text-[#9090a0] hover:text-[#c0c0cc] hover:bg-white/[0.04]'
-							}`}
+							className="w-full flex items-center justify-between px-3 py-2 text-xs text-left transition-colors"
+							style={{
+								color: value === o.value ? 'var(--accent)' : 'var(--text-muted)',
+								backgroundColor: value === o.value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+							}}
 						>
 							<span className="truncate">{o.label}</span>
-							{o.count !== undefined && <span className="text-[#6e6e82] ml-2">{o.count}</span>}
+							{o.count !== undefined && <span style={{ color: 'var(--text-muted)' }} className="ml-2">{o.count}</span>}
 						</button>
 					))}
 				</div>
