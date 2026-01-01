@@ -9,6 +9,7 @@ A modern lightweight web interface for qBittorrent, built with Vite.
     <td><img src="https://github.com/user-attachments/assets/3547bbed-8cba-4031-9b58-2c4c73d3a9f2" alt="demo_catppuccin" /></td>
   </tr>
 </table>
+
 ## Features
 
 - Real-time torrent monitoring with auto-refresh
