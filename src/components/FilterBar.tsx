@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react'
 import type { TorrentFilter } from '../types/qbittorrent'
 import type { Category } from '../api/qbittorrent'
+import type { ColumnDef } from './columns'
 
 const filters: { value: TorrentFilter; label: string; icon: ReactNode }[] = [
 	{
@@ -426,19 +427,19 @@ export function TrackerDropdown({ value, onChange, trackers }: TrackerDropdownPr
 		/>
 	)
 }
-export interface Column {
-	id: string
-	label: string
-}
 
 interface ColumnSelectorProps {
-	columns: Column[]
+	columns: ColumnDef[]
 	visible: Set<string>
 	onChange: (visible: Set<string>) => void
+	columnOrder: string[]
+	onReorder: (order: string[]) => void
+	onReset: () => void
 }
 
-export function ColumnSelector({ columns, visible, onChange }: ColumnSelectorProps) {
+export function ColumnSelector({ columns, visible, onChange, columnOrder, onReorder, onReset }: ColumnSelectorProps) {
 	const [open, setOpen] = useState(false)
+	const [draggedId, setDraggedId] = useState<string | null>(null)
 	const ref = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
@@ -455,6 +456,29 @@ export function ColumnSelector({ columns, visible, onChange }: ColumnSelectorPro
 		else next.add(id)
 		onChange(next)
 	}
+
+	function handleDragStart(e: React.DragEvent, id: string) {
+		setDraggedId(id)
+		e.dataTransfer.effectAllowed = 'move'
+	}
+
+	function handleDragOver(e: React.DragEvent, targetId: string) {
+		e.preventDefault()
+		if (!draggedId || draggedId === targetId) return
+		const dragIdx = columnOrder.indexOf(draggedId)
+		const targetIdx = columnOrder.indexOf(targetId)
+		if (dragIdx === -1 || targetIdx === -1) return
+		const newOrder = [...columnOrder]
+		newOrder.splice(dragIdx, 1)
+		newOrder.splice(targetIdx, 0, draggedId)
+		onReorder(newOrder)
+	}
+
+	function handleDragEnd() {
+		setDraggedId(null)
+	}
+
+	const orderedColumns = columnOrder.map(id => columns.find(c => c.id === id)).filter((c): c is ColumnDef => c !== undefined)
 
 	return (
 		<div ref={ref} className="relative">
@@ -473,26 +497,44 @@ export function ColumnSelector({ columns, visible, onChange }: ColumnSelectorPro
 			</button>
 			{open && (
 				<div
-					className="absolute top-full right-0 mt-1 min-w-[180px] max-h-[300px] overflow-auto rounded-lg border shadow-xl z-[100]"
+					className="absolute top-full right-0 mt-1 min-w-[200px] max-h-[400px] overflow-auto rounded-lg border shadow-xl z-[100]"
 					style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
 				>
-					<div className="px-3 py-2 text-[10px] uppercase tracking-widest font-medium border-b" style={{ color: 'var(--text-muted)', borderColor: 'var(--border)' }}>
-						Columns
-					</div>
-					{columns.map((col) => (
+					<div className="flex items-center justify-between px-3 py-2 border-b" style={{ borderColor: 'var(--border)' }}>
+						<span className="text-[10px] uppercase tracking-widest font-medium" style={{ color: 'var(--text-muted)' }}>Columns</span>
 						<button
+							onClick={() => { onReset(); setOpen(false) }}
+							className="text-[10px] transition-colors hover:opacity-80"
+							style={{ color: 'var(--accent)' }}
+						>
+							Reset
+						</button>
+					</div>
+					{orderedColumns.map((col) => (
+						<div
 							key={col.id}
-							onClick={() => toggle(col.id)}
-							className="w-full flex items-center justify-between px-3 py-2 text-xs text-left transition-colors hover:bg-white/5"
+							draggable
+							onDragStart={(e) => handleDragStart(e, col.id)}
+							onDragOver={(e) => handleDragOver(e, col.id)}
+							onDragEnd={handleDragEnd}
+							className={`flex items-center gap-2 px-2 py-2 text-xs transition-colors hover:bg-white/5 cursor-move ${draggedId === col.id ? 'opacity-50' : ''}`}
 							style={{ color: 'var(--text-primary)' }}
 						>
-							<span>{col.label}</span>
-							{visible.has(col.id) && (
-								<svg className="w-3 h-3" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-									<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-								</svg>
-							)}
-						</button>
+							<svg className="w-3 h-3 shrink-0" style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+								<path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+							</svg>
+							<button
+								onClick={() => toggle(col.id)}
+								className="flex-1 flex items-center justify-between text-left"
+							>
+								<span>{col.label}</span>
+								{visible.has(col.id) && (
+									<svg className="w-3 h-3" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+										<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+									</svg>
+								)}
+							</button>
+						</div>
 					))}
 				</div>
 			)}

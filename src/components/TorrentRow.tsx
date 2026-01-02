@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { Torrent, TorrentState } from '../types/qbittorrent'
 import { formatSpeed, formatSize, formatEta, formatDate, formatRelativeTime, formatDuration } from '../utils/format'
 
@@ -41,6 +42,95 @@ function getColor(type: StateType): string {
 	return colors[type]
 }
 
+interface CellContext {
+	stateColor: string
+	stateLabel: string
+	isComplete: boolean
+	progress: number
+	ratioColor: string
+}
+
+function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): ReactNode {
+	switch (columnId) {
+		case 'progress':
+			return ctx.isComplete ? (
+				<div className="flex items-center gap-2">
+					<div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' }}>
+						<svg className="w-3 h-3" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+							<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+						</svg>
+					</div>
+					<span className="text-xs font-medium" style={{ color: 'var(--accent)' }}>Complete</span>
+				</div>
+			) : (
+				<div className="space-y-1">
+					<div className="flex items-center gap-2">
+						<div className="relative w-20 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+							<div
+								className="absolute inset-y-0 left-0 rounded-full transition-all duration-300 progress-glow"
+								style={{ width: `${ctx.progress}%`, backgroundColor: ctx.stateColor }}
+							/>
+						</div>
+						<span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{ctx.progress}%</span>
+					</div>
+					<span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{formatEta(torrent.eta)}</span>
+				</div>
+			)
+		case 'status':
+			return (
+				<span
+					className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium"
+					style={{ color: ctx.stateColor, backgroundColor: `color-mix(in srgb, ${ctx.stateColor} 10%, transparent)` }}
+				>
+					<span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: ctx.stateColor }} />
+					{ctx.stateLabel}
+				</span>
+			)
+		case 'size':
+			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatSize(torrent.size)}</span>
+		case 'downloaded':
+			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatSize(torrent.downloaded)}</span>
+		case 'uploaded':
+			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatSize(torrent.uploaded)}</span>
+		case 'dlspeed':
+			return <span className="text-xs font-mono font-medium" style={{ color: 'var(--accent)' }}>{formatSpeed(torrent.dlspeed, false)}</span>
+		case 'upspeed':
+			return <span className="text-xs font-mono font-medium" style={{ color: 'var(--warning)' }}>{formatSpeed(torrent.upspeed, false)}</span>
+		case 'ratio':
+			return <span className="text-xs font-mono font-medium" style={{ color: ctx.ratioColor }}>{torrent.ratio.toFixed(2)}</span>
+		case 'seeding_time':
+			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatDuration(torrent.seeding_time)}</span>
+		case 'added_on':
+			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatDate(torrent.added_on)}</span>
+		case 'completion_on':
+			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatDate(torrent.completion_on)}</span>
+		case 'category':
+			return <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{torrent.category || '—'}</span>
+		case 'tags':
+			return torrent.tags ? (
+				<div className="flex flex-wrap gap-1 max-w-[200px]">
+					{torrent.tags.split(',').map((tag, i) => (
+						<span key={i} className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 text-white/70 border border-white/10">
+							{tag.trim()}
+						</span>
+					))}
+				</div>
+			) : <span className="text-xs text-gray-500">—</span>
+		case 'num_seeds':
+			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{torrent.num_seeds}</span>
+		case 'num_leechs':
+			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{torrent.num_leechs}</span>
+		case 'last_activity':
+			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatRelativeTime(torrent.last_activity)}</span>
+		case 'save_path':
+			return <span className="text-xs font-mono truncate max-w-[150px] block" title={torrent.save_path} style={{ color: 'var(--text-muted)' }}>{torrent.save_path}</span>
+		case 'tracker':
+			return <span className="text-xs font-mono truncate max-w-[150px] block" title={torrent.tracker} style={{ color: 'var(--text-muted)' }}>{torrent.tracker}</span>
+		default:
+			return null
+	}
+}
+
 interface Props {
 	torrent: Torrent
 	selected: boolean
@@ -48,15 +138,18 @@ interface Props {
 	onContextMenu: (e: React.MouseEvent) => void
 	ratioThreshold: number
 	visibleColumns: Set<string>
+	columnOrder: string[]
 }
 
-export function TorrentRow({ torrent, selected, onSelect, onContextMenu, ratioThreshold, visibleColumns }: Props) {
+export function TorrentRow({ torrent, selected, onSelect, onContextMenu, ratioThreshold, visibleColumns, columnOrder }: Props) {
 	const { label, type, isDownloading } = getStateInfo(torrent.state)
 	const progress = Math.round(torrent.progress * 100)
 	const isComplete = progress >= 100
 	const stateColor = getColor(type)
 	const ratioRounded = Math.round(torrent.ratio * 100) / 100
 	const ratioColor = ratioRounded >= ratioThreshold ? '#a6e3a1' : '#f38ba8'
+
+	const cellContext = { stateColor, stateLabel: label, isComplete, progress, ratioColor }
 
 	return (
 		<tr
@@ -87,159 +180,11 @@ export function TorrentRow({ torrent, selected, onSelect, onContextMenu, ratioTh
 					</span>
 				</div>
 			</td>
-			{visibleColumns.has('progress') && (
-				<td className="px-3 py-3">
-					{isComplete ? (
-						<div className="flex items-center gap-2">
-							<div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' }}>
-								<svg className="w-3 h-3" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-									<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-								</svg>
-							</div>
-							<span className="text-xs font-medium" style={{ color: 'var(--accent)' }}>Complete</span>
-						</div>
-					) : (
-						<div className="space-y-1">
-							<div className="flex items-center gap-2">
-								<div className="relative w-20 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-									<div
-										className="absolute inset-y-0 left-0 rounded-full transition-all duration-300 progress-glow"
-										style={{ width: `${progress}%`, backgroundColor: stateColor }}
-									/>
-								</div>
-								<span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{progress}%</span>
-							</div>
-							<span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{formatEta(torrent.eta)}</span>
-						</div>
-					)}
+			{columnOrder.filter(id => visibleColumns.has(id)).map(id => (
+				<td key={id} className="px-3 py-3">
+					{renderCell(id, torrent, cellContext)}
 				</td>
-			)}
-			{visibleColumns.has('status') && (
-				<td className="px-3 py-3">
-					<span
-						className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium"
-						style={{ color: stateColor, backgroundColor: `color-mix(in srgb, ${stateColor} 10%, transparent)` }}
-					>
-						<span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stateColor }} />
-						{label}
-					</span>
-				</td>
-			)}
-			{visibleColumns.has('size') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatSize(torrent.size)}</span>
-				</td>
-			)}
-			{visibleColumns.has('eta') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatEta(torrent.eta)}</span>
-				</td>
-			)}
-			{visibleColumns.has('downloaded') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatSize(torrent.downloaded)}</span>
-				</td>
-			)}
-			{visibleColumns.has('uploaded') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatSize(torrent.uploaded)}</span>
-				</td>
-			)}
-			{visibleColumns.has('dlspeed') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono font-medium" style={{ color: 'var(--accent)' }}>
-						{formatSpeed(torrent.dlspeed, false)}
-					</span>
-				</td>
-			)}
-			{visibleColumns.has('upspeed') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono font-medium" style={{ color: 'var(--warning)' }}>
-						{formatSpeed(torrent.upspeed, false)}
-					</span>
-				</td>
-			)}
-			{visibleColumns.has('ratio') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono font-medium" style={{ color: ratioColor }}>
-						{torrent.ratio.toFixed(2)}
-					</span>
-				</td>
-			)}
-			{visibleColumns.has('seeding_time') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-						{formatDuration(torrent.seeding_time)}
-					</span>
-				</td>
-			)}
-			{visibleColumns.has('added_on') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-						{formatDate(torrent.added_on)}
-					</span>
-				</td>
-			)}
-			{visibleColumns.has('completion_on') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-						{formatDate(torrent.completion_on)}
-					</span>
-				</td>
-			)}
-			{visibleColumns.has('category') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
-						{torrent.category || '—'}
-					</span>
-				</td>
-			)}
-			{visibleColumns.has('tags') && (
-				<td className="px-3 py-3">
-					<div className="flex flex-wrap gap-1 max-w-[200px]">
-						{torrent.tags ? torrent.tags.split(',').map((tag, i) => (
-							<span key={i} className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 text-white/70 border border-white/10">
-								{tag.trim()}
-							</span>
-						)) : <span className="text-xs text-gray-500">—</span>}
-					</div>
-				</td>
-			)}
-			{visibleColumns.has('num_seeds') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-						{torrent.num_seeds}
-					</span>
-				</td>
-			)}
-			{visibleColumns.has('num_leechs') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-						{torrent.num_leechs}
-					</span>
-				</td>
-			)}
-			{visibleColumns.has('last_activity') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-						{formatRelativeTime(torrent.last_activity)}
-					</span>
-				</td>
-			)}
-			{visibleColumns.has('save_path') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono truncate max-w-[150px] block" title={torrent.save_path} style={{ color: 'var(--text-muted)' }}>
-						{torrent.save_path}
-					</span>
-				</td>
-			)}
-			{visibleColumns.has('tracker') && (
-				<td className="px-3 py-3">
-					<span className="text-xs font-mono truncate max-w-[150px] block" title={torrent.tracker} style={{ color: 'var(--text-muted)' }}>
-						{torrent.tracker}
-					</span>
-				</td>
-			)}
+			))}
 		</tr>
 	)
 }
