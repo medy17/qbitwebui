@@ -1,4 +1,5 @@
 import { decrypt } from './crypto'
+import { fetchWithTls } from './fetch'
 
 interface QbtInstance {
 	url: string
@@ -28,7 +29,7 @@ export async function loginToQbt(instance: QbtInstance): Promise<QbtLoginResult>
 
 	try {
 		const password = decrypt(instance.qbt_password_encrypted)
-		const res = await fetch(`${instance.url}/api/v2/auth/login`, {
+		const res = await fetchWithTls(`${instance.url}/api/v2/auth/login`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 			body: new URLSearchParams({
@@ -66,7 +67,7 @@ export async function testQbtConnection(url: string, username?: string, password
 				return { success: false, error: 'Credentials required' }
 			}
 
-			const loginRes = await fetch(`${url}/api/v2/auth/login`, {
+			const loginRes = await fetchWithTls(`${url}/api/v2/auth/login`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 				body: new URLSearchParams({ username, password }),
@@ -87,7 +88,7 @@ export async function testQbtConnection(url: string, username?: string, password
 			}
 		}
 
-		const versionRes = await fetch(`${url}/api/v2/app/version`, {
+		const versionRes = await fetchWithTls(`${url}/api/v2/app/version`, {
 			headers: cookie ? { Cookie: cookie } : {},
 		})
 
@@ -109,7 +110,7 @@ export async function testStoredQbtInstance(instance: QbtInstance): Promise<QbtL
 	}
 
 	try {
-		const versionRes = await fetch(`${instance.url}/api/v2/app/version`, {
+		const versionRes = await fetchWithTls(`${instance.url}/api/v2/app/version`, {
 			headers: loginResult.cookie ? { Cookie: loginResult.cookie } : {},
 		})
 

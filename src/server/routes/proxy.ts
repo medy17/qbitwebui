@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { db, type Instance } from '../db'
 import { loginToQbt as qbtLogin } from '../utils/qbt'
 import { authMiddleware } from '../middleware/auth'
+import { fetchWithTls } from '../utils/fetch'
 
 const proxy = new Hono()
 
@@ -99,7 +100,7 @@ proxy.all('/:id/qbt/*', async (c) => {
 			}
 		}
 
-		return fetch(targetUrl, {
+		return fetchWithTls(targetUrl, {
 			method: c.req.method,
 			headers,
 			body,

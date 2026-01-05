@@ -5,6 +5,7 @@ import { validateUrl } from '../utils/url'
 import { loginToQbt, testQbtConnection, testStoredQbtInstance } from '../utils/qbt'
 import { authMiddleware } from '../middleware/auth'
 import { clearQbtSession } from './proxy'
+import { fetchWithTls } from '../utils/fetch'
 
 const instances = new Hono()
 
@@ -96,9 +97,9 @@ async function fetchInstanceStats(instance: Instance): Promise<InstanceStats> {
 		const headers: Record<string, string> = {}
 		if (loginResult.cookie) headers.Cookie = loginResult.cookie
 		const [torrentsRes, transferRes, syncRes] = await Promise.all([
-			fetch(`${instance.url}/api/v2/torrents/info`, { headers }),
-			fetch(`${instance.url}/api/v2/transfer/info`, { headers }),
-			fetch(`${instance.url}/api/v2/sync/maindata?rid=0`, { headers }),
+			fetchWithTls(`${instance.url}/api/v2/torrents/info`, { headers }),
+			fetchWithTls(`${instance.url}/api/v2/transfer/info`, { headers }),
+			fetchWithTls(`${instance.url}/api/v2/sync/maindata?rid=0`, { headers }),
 		])
 
 		if (!torrentsRes.ok || !transferRes.ok || !syncRes.ok) {

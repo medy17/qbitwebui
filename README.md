@@ -53,6 +53,8 @@ services:
     environment:
       # Generate your own: openssl rand -hex 32
       - ENCRYPTION_KEY=your-secret-key-here
+      # Uncomment to allow HTTPS with self-signed certificates
+      # - ALLOW_SELF_SIGNED_CERTS=true
     volumes:
       - ./data:/data
     restart: unless-stopped
@@ -81,6 +83,7 @@ bun run dev
 | `PORT` | No | `3000` | Server port |
 | `DATABASE_PATH` | No | `./data/qbitwebui.db` | SQLite database location |
 | `SALT_PATH` | No | `./data/.salt` | Encryption salt file location |
+| `ALLOW_SELF_SIGNED_CERTS` | No | `false` | Set to `true` to allow HTTPS connections to qBittorrent instances with self-signed certificates |
 
 ## Tech Stack
 
