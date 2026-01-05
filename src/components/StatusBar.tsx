@@ -1,12 +1,10 @@
 import { useTransferInfo } from '../hooks/useTransferInfo'
-import { useTorrents } from '../hooks/useTorrents'
+import { useSyncMaindata } from '../hooks/useSyncMaindata'
 import { formatSpeed, formatSize } from '../utils/format'
 
 export function StatusBar() {
 	const { data } = useTransferInfo()
-	const { data: torrents = [] } = useTorrents()
-	const totalDownloaded = torrents.reduce((sum, t) => sum + t.downloaded, 0)
-	const totalUploaded = torrents.reduce((sum, t) => sum + t.uploaded, 0)
+	const { data: syncData } = useSyncMaindata()
 
 	const statusConfig = {
 		connected: { label: 'Connected', type: 'success' as const },
@@ -55,9 +53,9 @@ export function StatusBar() {
 			<div className="relative flex items-center justify-center">
 				<div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border" style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}>
 					<span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Total</span>
-					<span className="text-xs font-mono" style={{ color: 'var(--accent)' }}>{formatSize(totalDownloaded)}</span>
+					<span className="text-xs font-mono" style={{ color: 'var(--accent)' }}>{formatSize(syncData?.server_state.alltime_dl ?? 0)}</span>
 					<span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>/</span>
-					<span className="text-xs font-mono" style={{ color: 'var(--warning)' }}>{formatSize(totalUploaded)}</span>
+					<span className="text-xs font-mono" style={{ color: 'var(--warning)' }}>{formatSize(syncData?.server_state.alltime_ul ?? 0)}</span>
 				</div>
 			</div>
 

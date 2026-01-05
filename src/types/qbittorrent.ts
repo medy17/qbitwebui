@@ -57,6 +57,17 @@ export interface TransferInfo {
 	connection_status: 'connected' | 'firewalled' | 'disconnected'
 }
 
+export interface SyncServerState {
+	alltime_dl: number
+	alltime_ul: number
+	dl_info_speed: number
+	up_info_speed: number
+}
+
+export interface SyncMaindata {
+	server_state: SyncServerState
+}
+
 export type TorrentFilter =
 	| 'all'
 	| 'downloading'

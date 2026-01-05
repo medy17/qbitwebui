@@ -24,11 +24,19 @@ export function MobileStats({ instances }: Props) {
 		})),
 	})
 
+	const syncQueries = useQueries({
+		queries: instances.map(instance => ({
+			queryKey: ['syncMaindata', instance.id],
+			queryFn: () => api.getSyncMaindata(instance.id),
+			refetchInterval: 2000,
+		})),
+	})
+
 	const torrents = torrentQueries.flatMap(q => q.data || [])
 	const totalDownloadSpeed = transferQueries.reduce((sum, q) => sum + (q.data?.dl_info_speed || 0), 0)
 	const totalUploadSpeed = transferQueries.reduce((sum, q) => sum + (q.data?.up_info_speed || 0), 0)
-	const allTimeDownload = torrents.reduce((sum, t) => sum + t.downloaded, 0)
-	const allTimeUpload = torrents.reduce((sum, t) => sum + t.uploaded, 0)
+	const allTimeDownload = syncQueries.reduce((sum, q) => sum + (q.data?.server_state.alltime_dl || 0), 0)
+	const allTimeUpload = syncQueries.reduce((sum, q) => sum + (q.data?.server_state.alltime_ul || 0), 0)
 
 	const counts = {
 		total: torrents.length,

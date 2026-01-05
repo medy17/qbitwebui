@@ -1,5 +1,5 @@
 import JSZip from 'jszip'
-import type { Torrent, TorrentFilter, TransferInfo } from '../types/qbittorrent'
+import type { Torrent, TorrentFilter, TransferInfo, SyncMaindata } from '../types/qbittorrent'
 import type { TorrentProperties, Tracker, PeersResponse, TorrentFile, WebSeed } from '../types/torrentDetails'
 
 function getBase(instanceId: number): string {
@@ -42,6 +42,10 @@ export async function getTorrents(instanceId: number, options: TorrentFilterOpti
 
 export async function getTransferInfo(instanceId: number): Promise<TransferInfo> {
 	return request<TransferInfo>(instanceId, '/transfer/info')
+}
+
+export async function getSyncMaindata(instanceId: number): Promise<SyncMaindata> {
+	return request<SyncMaindata>(instanceId, '/sync/maindata?rid=0')
 }
 
 export async function stopTorrents(instanceId: number, hashes: string[]): Promise<void> {

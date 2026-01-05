@@ -49,6 +49,13 @@ interface TransferInfo {
 	up_info_speed: number
 }
 
+interface SyncMaindata {
+	server_state: {
+		alltime_dl: number
+		alltime_ul: number
+	}
+}
+
 interface InstanceStats {
 	id: number
 	label: string
@@ -88,24 +95,26 @@ async function fetchInstanceStats(instance: Instance): Promise<InstanceStats> {
 
 		const headers: Record<string, string> = {}
 		if (loginResult.cookie) headers.Cookie = loginResult.cookie
-		const [torrentsRes, transferRes] = await Promise.all([
+		const [torrentsRes, transferRes, syncRes] = await Promise.all([
 			fetch(`${instance.url}/api/v2/torrents/info`, { headers }),
 			fetch(`${instance.url}/api/v2/transfer/info`, { headers }),
+			fetch(`${instance.url}/api/v2/sync/maindata?rid=0`, { headers }),
 		])
 
-		if (!torrentsRes.ok || !transferRes.ok) {
+		if (!torrentsRes.ok || !transferRes.ok || !syncRes.ok) {
 			return base
 		}
 
 		const torrents = await torrentsRes.json() as TorrentInfo[]
 		const transfer = await transferRes.json() as TransferInfo
+		const sync = await syncRes.json() as SyncMaindata
 
 		base.online = true
 		base.total = torrents.length
 		base.dlSpeed = transfer.dl_info_speed
 		base.upSpeed = transfer.up_info_speed
-		base.allTimeDownload = torrents.reduce((sum, t) => sum + t.downloaded, 0)
-		base.allTimeUpload = torrents.reduce((sum, t) => sum + t.uploaded, 0)
+		base.allTimeDownload = sync.server_state.alltime_dl
+		base.allTimeUpload = sync.server_state.alltime_ul
 
 		for (const t of torrents) {
 			if (t.state === 'pausedUP' || t.state === 'pausedDL' || t.state === 'stoppedUP' || t.state === 'stoppedDL') {
