@@ -12,17 +12,18 @@ Built with [React](https://react.dev/), [Hono](https://hono.dev/), and [Bun](htt
 </div>
 
 <div align="center">
-  <img width="800" alt="demo1" src="https://github.com/user-attachments/assets/2338e919-47be-44e8-85aa-8f575ee50b1c" />
-  <img width="800" alt="demo2" src="https://github.com/user-attachments/assets/d8efc3d3-ddff-4462-ab79-967359a1e21a" />
+<img width="800" alt="main" src="https://github.com/user-attachments/assets/64ae19ea-9029-442c-97dd-958af04e21d1" />
+<img width="800" alt="torrents-view" src="https://github.com/user-attachments/assets/f0be4014-8ca5-4ac5-b3be-b0b75a0e2df8" />
+
 </div>
 
 <details>
 <summary><h3>Themes</h3></summary>
 <div align="center">
-<img width="800" height="1720" alt="catppuccin" src="https://github.com/user-attachments/assets/9bae8af1-3ff9-49b7-80e2-4cc9379ce8ca" />
-<img width="800" height="1720" alt="dracula" src="https://github.com/user-attachments/assets/99c84462-0d0a-4a19-bfa5-b70bf9d0ce2e" />
-<img width="800" height="1720" alt="nord" src="https://github.com/user-attachments/assets/f642b0ea-313f-428d-81e9-1bb8aef3dd12" />
-<img width="800" height="1720" alt="gruvbox" src="https://github.com/user-attachments/assets/4b0ce8ce-6bbe-4ca0-a4c0-9cf1216d9b80" />
+<img width="800" height="1730" alt="theme-catppuccin" src="https://github.com/user-attachments/assets/2982522e-789d-400b-9a9f-08f9277fb491" />
+<img width="800" height="1730" alt="theme-gruvbox" src="https://github.com/user-attachments/assets/e8dce4d7-c9f5-41dc-af91-b6d8683ae50f" />
+<img width="800" height="1730" alt="theme-dracula" src="https://github.com/user-attachments/assets/a0c52d40-c960-48dd-93c2-76f194612150" />
+<img width="800" height="1730" alt="theme-nord" src="https://github.com/user-attachments/assets/e5960f2a-fd01-4656-b9e0-c72a4af0b328" />
 </div>
 </details>
 
@@ -31,8 +32,8 @@ Built with [React](https://react.dev/), [Hono](https://hono.dev/), and [Bun](htt
 <div align="center">
 <table>
   <tr>
-    <td><img width="295" alt="IMG_3518" src="https://github.com/user-attachments/assets/0990bf2e-ce86-4f56-90e4-1093e30acb33" /></td>
-    <td><img width="295" alt="IMG_3519" src="https://github.com/user-attachments/assets/455cecd4-215c-4d1c-aaf9-95860037c0c8" /></td>
+   <td> <img width="295" alt="mobile" src="https://github.com/user-attachments/assets/ea14587c-1b12-46c7-afdc-def83b5e3e7c" /></td>
+   <td> <img width="295" alt="mobile-detailed" src="https://github.com/user-attachments/assets/97c1ddf1-8df0-4acd-a6a1-5690badd7aa7" /></td>
   </tr>
 </table>
 </div>
@@ -41,6 +42,7 @@ Built with [React](https://react.dev/), [Hono](https://hono.dev/), and [Bun](htt
 ## Features
 
 - **Multi-instance** - Manage multiple qBittorrent instances from one dashboard
+- **Instance speed management** - Easily control global/alternative speed limits per instance
 - **Instance statistics** - Overview of all instances with status, speeds, torrent counts
 - **User accounts** - Register/login with secure session management
 - **Prowlarr integration** - Search indexers and send torrents directly to qBittorrent
