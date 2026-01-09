@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from 'react'
 import type { TorrentFilter, Torrent } from '../types/qbittorrent'
-import { useTorrents, useStopTorrents, useStartTorrents, useDeleteTorrents, useCategories, useTags, useCreateCategory, useDeleteCategory, useCreateTag, useDeleteTag } from '../hooks/useTorrents'
+import { useTorrents, useStopTorrents, useStartTorrents, useDeleteTorrents, useCategories, useTags } from '../hooks/useTorrents'
 import { TorrentRow } from './TorrentRow'
-import { FilterBar, SearchInput, CategoryDropdown, TagDropdown, TrackerDropdown, ColumnSelector } from './FilterBar'
+import { FilterBar, SearchInput, CategoryDropdown, TagDropdown, TrackerDropdown, ColumnSelector, ManageButton } from './FilterBar'
 import { AddTorrentModal } from './AddTorrentModal'
+import { CategoryTagManager } from './CategoryTagManager'
 import { TorrentDetailsPanel } from './TorrentDetailsPanel'
 import { ContextMenu } from './ContextMenu'
 import { RatioThresholdPopup } from './RatioThresholdPopup'
@@ -73,6 +74,7 @@ export function TorrentList() {
 	const [contextMenu, setContextMenu] = useState<{ x: number; y: number; torrents: Torrent[] } | null>(null)
 	const [ratioThreshold, setRatioThreshold] = useState(loadRatioThreshold)
 	const [ratioPopupAnchor, setRatioPopupAnchor] = useState<HTMLElement | null>(null)
+	const [managerModal, setManagerModal] = useState(false)
 
 	const [visibleColumns, setVisibleColumns] = useState<Set<string>>(() => {
 		const stored = localStorage.getItem('visibleColumns')
@@ -120,10 +122,6 @@ export function TorrentList() {
 	const stopMutation = useStopTorrents()
 	const startMutation = useStartTorrents()
 	const deleteMutation = useDeleteTorrents()
-	const createCategoryMutation = useCreateCategory()
-	const deleteCategoryMutation = useDeleteCategory()
-	const createTagMutation = useCreateTag()
-	const deleteTagMutation = useDeleteTag()
 
 	const { page, perPage, setTotalItems, setPage } = usePagination()
 
@@ -296,19 +294,17 @@ export function TorrentList() {
 						value={categoryFilter}
 						onChange={setCategoryFilter}
 						categories={categories}
-						onCreate={(name) => createCategoryMutation.mutate({ name })}
-						onDelete={(name) => deleteCategoryMutation.mutate(name)}
 					/>
 					<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
 					<TagDropdown
 						value={tagFilter}
 						onChange={setTagFilter}
 						tags={tags}
-						onCreate={(name) => createTagMutation.mutate(name)}
-						onDelete={(name) => deleteTagMutation.mutate(name)}
 					/>
 					<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
 					<TrackerDropdown value={trackerFilter} onChange={setTrackerFilter} trackers={uniqueTrackers} />
+					<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
+					<ManageButton onClick={() => setManagerModal(true)} />
 					<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
 					<ColumnSelector
 						columns={COLUMNS}
@@ -456,6 +452,7 @@ export function TorrentList() {
 			)}
 
 			<AddTorrentModal open={addModal} onClose={() => setAddModal(false)} />
+			<CategoryTagManager open={managerModal} onClose={() => setManagerModal(false)} />
 
 			<TorrentDetailsPanel
 				hash={selectedHash}

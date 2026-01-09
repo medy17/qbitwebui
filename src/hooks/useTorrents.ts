@@ -143,6 +143,16 @@ export function useCreateCategory() {
 	})
 }
 
+export function useEditCategory() {
+	const instance = useInstance()
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: ({ name, savePath }: { name: string; savePath: string }) =>
+			api.editCategory(instance.id, name, savePath),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories', instance.id] }),
+	})
+}
+
 export function useDeleteCategory() {
 	const instance = useInstance()
 	const queryClient = useQueryClient()

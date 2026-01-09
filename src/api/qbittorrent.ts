@@ -209,6 +209,14 @@ export async function createCategory(instanceId: number, category: string, saveP
 	})
 }
 
+export async function editCategory(instanceId: number, category: string, savePath: string): Promise<void> {
+	await request(instanceId, '/torrents/editCategory', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+		body: new URLSearchParams({ category, savePath }),
+	})
+}
+
 export async function removeCategories(instanceId: number, categories: string[]): Promise<void> {
 	await request(instanceId, '/torrents/removeCategories', {
 		method: 'POST',
