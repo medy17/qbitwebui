@@ -6,6 +6,9 @@ import { MobileInstancePicker } from './MobileInstancePicker'
 import { MobileStats } from './MobileStats'
 import { MobileTorrentList } from './MobileTorrentList'
 import { MobileTorrentDetail } from './MobileTorrentDetail'
+import { MobileTools } from './MobileTools'
+
+type MainTab = 'torrents' | 'tools'
 
 const queryClient = new QueryClient({
 	defaultOptions: {
@@ -30,7 +33,17 @@ export function MobileApp({ username, onLogout }: Props) {
 	const [showUserMenu, setShowUserMenu] = useState(false)
 	const [search, setSearch] = useState('')
 	const [searchFocused, setSearchFocused] = useState(false)
+	const [mainTab, setMainTab] = useState<MainTab>('torrents')
+	const [compactMode, setCompactMode] = useState(() => localStorage.getItem('mobileCompactMode') === 'true')
 	const searchInputRef = useRef<HTMLInputElement>(null)
+
+	const toggleCompactMode = useCallback(() => {
+		setCompactMode(prev => {
+			const next = !prev
+			localStorage.setItem('mobileCompactMode', String(next))
+			return next
+		})
+	}, [])
 
 	const loadInstances = useCallback(async () => {
 		try {
@@ -101,11 +114,16 @@ export function MobileApp({ username, onLogout }: Props) {
 					<div className="flex items-center justify-between px-4 py-3">
 						<div className="flex items-center gap-3">
 							<img src="/logo.png" alt="qbitwebui" className="w-8 h-8" />
-							<MobileInstancePicker
-								instances={instances}
-								current={selectedInstance}
-								onChange={setSelectedInstance}
-							/>
+							{mainTab === 'torrents' && (
+								<MobileInstancePicker
+									instances={instances}
+									current={selectedInstance}
+									onChange={setSelectedInstance}
+								/>
+							)}
+							{mainTab === 'tools' && (
+								<span className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Tools</span>
+							)}
 						</div>
 						<div className="relative">
 							<button
@@ -142,68 +160,109 @@ export function MobileApp({ username, onLogout }: Props) {
 							)}
 						</div>
 					</div>
-					<div className="px-4 pb-3">
-						<div
-							className="flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-200"
-							style={{
-								backgroundColor: 'var(--bg-tertiary)',
-								borderColor: searchFocused ? 'var(--accent)' : 'var(--border)',
-							}}
-						>
-							<svg
-								className="w-4 h-4 flex-shrink-0"
-								style={{ color: searchFocused ? 'var(--accent)' : 'var(--text-muted)' }}
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								strokeWidth={2}
+					{mainTab === 'torrents' && (
+						<div className="px-4 pb-3">
+							<div
+								className="flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-200"
+								style={{
+									backgroundColor: 'var(--bg-tertiary)',
+									borderColor: searchFocused ? 'var(--accent)' : 'var(--border)',
+								}}
 							>
-								<path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-							</svg>
-							<input
-								ref={searchInputRef}
-								type="text"
-								inputMode="search"
-								enterKeyHint="search"
-								value={search}
-								onChange={(e) => setSearch(e.target.value)}
-								onFocus={() => setSearchFocused(true)}
-								onBlur={() => setSearchFocused(false)}
-								placeholder="Search torrents..."
-								className="flex-1 bg-transparent outline-none"
-								style={{ color: 'var(--text-primary)', fontSize: '16px' }}
-							/>
-							{search && (
-								<button
-									onMouseDown={(e) => e.preventDefault()}
-									onClick={() => { setSearch(''); searchInputRef.current?.focus() }}
-									className="p-1 rounded-full active:scale-90 transition-transform"
-									style={{ backgroundColor: 'var(--bg-tertiary)' }}
+								<svg
+									className="w-4 h-4 flex-shrink-0"
+									style={{ color: searchFocused ? 'var(--accent)' : 'var(--text-muted)' }}
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									strokeWidth={2}
 								>
-									<svg className="w-4 h-4" style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-										<path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-									</svg>
-								</button>
-							)}
+									<path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+								</svg>
+								<input
+									ref={searchInputRef}
+									type="text"
+									inputMode="search"
+									enterKeyHint="search"
+									value={search}
+									onChange={(e) => setSearch(e.target.value)}
+									onFocus={() => setSearchFocused(true)}
+									onBlur={() => setSearchFocused(false)}
+									placeholder="Search torrents..."
+									className="flex-1 bg-transparent outline-none"
+									style={{ color: 'var(--text-primary)', fontSize: '16px' }}
+								/>
+								{search && (
+									<button
+										onMouseDown={(e) => e.preventDefault()}
+										onClick={() => { setSearch(''); searchInputRef.current?.focus() }}
+										className="p-1 rounded-full active:scale-90 transition-transform"
+										style={{ backgroundColor: 'var(--bg-tertiary)' }}
+									>
+										<svg className="w-4 h-4" style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+											<path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+										</svg>
+									</button>
+								)}
+							</div>
 						</div>
-					</div>
+					)}
 				</header>
 
-				<main className="flex-1 overflow-y-auto">
-					<div className="p-4 space-y-4">
-						<MobileStats
-							instances={selectedInstance === 'all' ? instances : [selectedInstance]}
-						/>
-						<MobileTorrentList
-							instances={selectedInstance === 'all' ? instances : [selectedInstance]}
-							search={search}
-							onSelectTorrent={(hash, instanceId) => {
-								setSelectedTorrentHash(hash)
-								setSelectedTorrentInstanceId(instanceId)
-							}}
-						/>
-					</div>
+				<main className="flex-1 overflow-y-auto" style={{ paddingBottom: 'calc(70px + env(safe-area-inset-bottom, 0px))' }}>
+					{mainTab === 'torrents' && (
+						<div className="p-4 space-y-4">
+							<MobileStats
+								instances={selectedInstance === 'all' ? instances : [selectedInstance]}
+							/>
+							<MobileTorrentList
+								instances={selectedInstance === 'all' ? instances : [selectedInstance]}
+								search={search}
+								compact={compactMode}
+								onToggleCompact={toggleCompactMode}
+								onSelectTorrent={(hash, instanceId) => {
+									setSelectedTorrentHash(hash)
+									setSelectedTorrentInstanceId(instanceId)
+								}}
+							/>
+						</div>
+					)}
+					{mainTab === 'tools' && (
+						<MobileTools instances={instances} />
+					)}
 				</main>
+
+				<nav
+					className="fixed bottom-0 left-0 right-0 z-30 border-t backdrop-blur-xl"
+					style={{
+						backgroundColor: 'color-mix(in srgb, var(--bg-primary) 90%, transparent)',
+						borderColor: 'var(--border)',
+						paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+					}}
+				>
+					<div className="flex">
+						<button
+							onClick={() => setMainTab('torrents')}
+							className="flex-1 flex flex-col items-center gap-1 py-3 transition-colors"
+							style={{ color: mainTab === 'torrents' ? 'var(--accent)' : 'var(--text-muted)' }}
+						>
+							<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={mainTab === 'torrents' ? 2 : 1.5}>
+								<path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+							</svg>
+							<span className="text-xs font-medium">Torrents</span>
+						</button>
+						<button
+							onClick={() => setMainTab('tools')}
+							className="flex-1 flex flex-col items-center gap-1 py-3 transition-colors"
+							style={{ color: mainTab === 'tools' ? 'var(--accent)' : 'var(--text-muted)' }}
+						>
+							<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={mainTab === 'tools' ? 2 : 1.5}>
+								<path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
+							</svg>
+							<span className="text-xs font-medium">Tools</span>
+						</button>
+					</div>
+				</nav>
 
 				{selectedTorrentHash && selectedTorrentInstanceId && (
 					<MobileTorrentDetail

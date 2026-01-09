@@ -69,10 +69,12 @@ function StateIcon({ type, color }: { type: 'download' | 'upload' | 'pause' | 'e
 interface Props {
 	instances: Instance[]
 	search?: string
+	compact?: boolean
+	onToggleCompact?: () => void
 	onSelectTorrent: (hash: string, instanceId: number) => void
 }
 
-export function MobileTorrentList({ instances, search, onSelectTorrent }: Props) {
+export function MobileTorrentList({ instances, search, compact, onToggleCompact, onSelectTorrent }: Props) {
 	const [filter, setFilter] = useState<FilterTab>('all')
 	const [swipedHash, setSwipedHash] = useState<string | null>(null)
 	const queryClient = useQueryClient()
@@ -149,24 +151,44 @@ export function MobileTorrentList({ instances, search, onSelectTorrent }: Props)
 
 	return (
 		<div className="space-y-3">
-			<div
-				className="flex gap-1 p-1 rounded-xl overflow-x-auto scrollbar-none"
-				style={{ backgroundColor: 'var(--bg-secondary)' }}
-			>
-				{tabs.map((tab) => (
+			<div className="flex gap-2">
+				<div
+					className="flex-1 flex gap-1 p-1 rounded-xl overflow-x-auto scrollbar-none"
+					style={{ backgroundColor: 'var(--bg-secondary)' }}
+				>
+					{tabs.map((tab) => (
+						<button
+							key={tab.id}
+							onClick={() => setFilter(tab.id)}
+							className="flex-1 min-w-fit px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap"
+							style={{
+								backgroundColor: filter === tab.id ? 'var(--bg-primary)' : 'transparent',
+								color: filter === tab.id ? 'var(--text-primary)' : 'var(--text-muted)',
+								boxShadow: filter === tab.id ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
+							}}
+						>
+							{tab.label}
+						</button>
+					))}
+				</div>
+				{onToggleCompact && (
 					<button
-						key={tab.id}
-						onClick={() => setFilter(tab.id)}
-						className="flex-1 min-w-fit px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap"
-						style={{
-							backgroundColor: filter === tab.id ? 'var(--bg-primary)' : 'transparent',
-							color: filter === tab.id ? 'var(--text-primary)' : 'var(--text-muted)',
-							boxShadow: filter === tab.id ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
-						}}
+						onClick={onToggleCompact}
+						className="p-2.5 rounded-xl shrink-0"
+						style={{ backgroundColor: 'var(--bg-secondary)', color: compact ? 'var(--accent)' : 'var(--text-muted)' }}
+						title={compact ? 'Expanded view' : 'Compact view'}
 					>
-						{tab.label}
+						{compact ? (
+							<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+								<path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+							</svg>
+						) : (
+							<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+								<path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+							</svg>
+						)}
 					</button>
-				))}
+				)}
 			</div>
 
 			{isLoading ? (
@@ -184,12 +206,70 @@ export function MobileTorrentList({ instances, search, onSelectTorrent }: Props)
 					<div className="text-sm" style={{ color: 'var(--text-muted)' }}>No torrents found</div>
 				</div>
 			) : (
-				<div className="space-y-2">
+				<div className={compact ? 'space-y-1' : 'space-y-2'}>
 					{filteredTorrents.map((torrent) => {
 						const stateInfo = getStateInfo(torrent.state)
 						const isPaused = PAUSED_STATES.includes(torrent.state)
 						const isSwiped = swipedHash === torrent.hash
 						const speed = torrent.dlspeed > 0 ? formatSpeed(torrent.dlspeed) : torrent.upspeed > 0 ? formatSpeed(torrent.upspeed) : ''
+						const progress = Math.round(torrent.progress * 100)
+
+						if (compact) {
+							return (
+								<button
+									key={torrent.hash}
+									onClick={() => onSelectTorrent(torrent.hash, torrent.instanceId)}
+									className="w-full text-left px-3 py-2.5 rounded-xl border active:scale-[0.99] transition-transform"
+									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+								>
+									<div className="flex items-center gap-2 mb-1">
+										<div className="text-xs font-medium truncate flex-1" style={{ color: 'var(--text-primary)' }}>
+											{torrent.name}
+										</div>
+										<span className="text-[10px] tabular-nums shrink-0 font-medium" style={{ color: stateInfo.color }}>
+											{progress}%
+										</span>
+									</div>
+									<div className="flex items-center gap-1.5 text-[10px] mb-1.5" style={{ color: 'var(--text-muted)' }}>
+										<span style={{ color: stateInfo.color }}>{stateInfo.label}</span>
+										{showInstanceLabel && (
+											<>
+												<span style={{ opacity: 0.4 }}>•</span>
+												<span>{torrent.instanceLabel}</span>
+											</>
+										)}
+										<span style={{ opacity: 0.4 }}>•</span>
+										<span className="tabular-nums">{formatCompactSize(torrent.size)}</span>
+										{speed && (
+											<>
+												<span style={{ opacity: 0.4 }}>•</span>
+												<span className="tabular-nums" style={{ color: stateInfo.color }}>{speed}</span>
+											</>
+										)}
+										{torrent.eta > 0 && torrent.eta < 8640000 && (
+											<>
+												<span style={{ opacity: 0.4 }}>•</span>
+												<span className="tabular-nums">{formatEta(torrent.eta)}</span>
+											</>
+										)}
+									</div>
+									<div className="h-1 rounded-full overflow-hidden mb-1.5" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+										<div
+											className="h-full rounded-full"
+											style={{ width: `${progress}%`, backgroundColor: stateInfo.color }}
+										/>
+									</div>
+									<div className="flex items-center gap-3 text-[10px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
+										<span><span style={{ opacity: 0.5 }}>↓</span>{formatCompactSize(torrent.downloaded)}</span>
+										<span><span style={{ opacity: 0.5 }}>↑</span>{formatCompactSize(torrent.uploaded)}</span>
+										<span><span style={{ opacity: 0.5, color: 'var(--accent)' }}>▼</span>{formatCompactSpeed(torrent.dlspeed)}/s</span>
+										<span><span style={{ opacity: 0.5, color: '#a6e3a1' }}>▲</span>{formatCompactSpeed(torrent.upspeed)}/s</span>
+										<span className="ml-auto"><span style={{ opacity: 0.5 }}>⏱</span>{formatDuration(torrent.seeding_time)}</span>
+										<span><span style={{ opacity: 0.5 }}>+</span>{formatRelativeDate(torrent.added_on)}</span>
+									</div>
+								</button>
+							)
+						}
 
 						return (
 							<div key={torrent.hash} className="relative overflow-hidden rounded-2xl">
@@ -265,14 +345,14 @@ export function MobileTorrentList({ instances, search, onSelectTorrent }: Props)
 												<div
 													className="h-full rounded-full transition-all duration-300"
 													style={{
-														width: `${Math.round(torrent.progress * 100)}%`,
+														width: `${progress}%`,
 														backgroundColor: stateInfo.color,
 													}}
 												/>
 											</div>
 											<div className="flex items-center justify-between mt-1.5">
 												<span className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
-													{Math.round(torrent.progress * 100)}%
+													{progress}%
 												</span>
 												{torrent.eta > 0 && torrent.eta < 8640000 && (
 													<span className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
