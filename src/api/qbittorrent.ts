@@ -2,6 +2,7 @@ import JSZip from 'jszip'
 import type { Torrent, TorrentFilter, TransferInfo, SyncMaindata } from '../types/qbittorrent'
 import type { TorrentProperties, Tracker, PeersResponse, TorrentFile, WebSeed } from '../types/torrentDetails'
 import type { QBittorrentPreferences } from '../types/preferences'
+import type { RSSItems, RSSRules, RSSRule, MatchingArticles } from '../types/rss'
 
 function getBase(instanceId: number): string {
 	return `/api/instances/${instanceId}/qbt/v2`
@@ -313,4 +314,69 @@ export async function setPreferences(instanceId: number, prefs: Partial<QBittorr
 	if (!res.ok) {
 		throw new Error(`Failed to save preferences: ${res.status}`)
 	}
+}
+
+export async function getRSSItems(instanceId: number, withData = false): Promise<RSSItems> {
+	return request<RSSItems>(instanceId, `/rss/items?withData=${withData}`)
+}
+
+async function postRSS(instanceId: number, endpoint: string, params: Record<string, string>): Promise<void> {
+	const res = await fetch(`${getBase(instanceId)}${endpoint}`, {
+		method: 'POST',
+		credentials: 'include',
+		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+		body: new URLSearchParams(params),
+	})
+	if (!res.ok) {
+		const text = await res.text()
+		throw new Error(text || `API error: ${res.status}`)
+	}
+}
+
+export async function addRSSFeed(instanceId: number, url: string, path?: string): Promise<void> {
+	const params: Record<string, string> = { url }
+	if (path) params.path = path
+	await postRSS(instanceId, '/rss/addFeed', params)
+}
+
+export async function addRSSFolder(instanceId: number, path: string): Promise<void> {
+	await postRSS(instanceId, '/rss/addFolder', { path })
+}
+
+export async function removeRSSItem(instanceId: number, path: string): Promise<void> {
+	await postRSS(instanceId, '/rss/removeItem', { path })
+}
+
+export async function moveRSSItem(instanceId: number, itemPath: string, destPath: string): Promise<void> {
+	await postRSS(instanceId, '/rss/moveItem', { itemPath, destPath })
+}
+
+export async function refreshRSSItem(instanceId: number, itemPath: string): Promise<void> {
+	await postRSS(instanceId, '/rss/refreshItem', { itemPath })
+}
+
+export async function markRSSAsRead(instanceId: number, itemPath: string, articleId?: string): Promise<void> {
+	const params: Record<string, string> = { itemPath }
+	if (articleId) params.articleId = articleId
+	await postRSS(instanceId, '/rss/markAsRead', params)
+}
+
+export async function getRSSRules(instanceId: number): Promise<RSSRules> {
+	return request<RSSRules>(instanceId, '/rss/rules')
+}
+
+export async function setRSSRule(instanceId: number, ruleName: string, ruleDef: Partial<RSSRule>): Promise<void> {
+	await postRSS(instanceId, '/rss/setRule', { ruleName, ruleDef: JSON.stringify(ruleDef) })
+}
+
+export async function removeRSSRule(instanceId: number, ruleName: string): Promise<void> {
+	await postRSS(instanceId, '/rss/removeRule', { ruleName })
+}
+
+export async function renameRSSRule(instanceId: number, ruleName: string, newRuleName: string): Promise<void> {
+	await postRSS(instanceId, '/rss/renameRule', { ruleName, newRuleName })
+}
+
+export async function getMatchingArticles(instanceId: number, ruleName: string): Promise<MatchingArticles> {
+	return request<MatchingArticles>(instanceId, `/rss/matchingArticles?ruleName=${encodeURIComponent(ruleName)}`)
 }

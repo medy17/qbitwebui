@@ -6,13 +6,14 @@ import { SettingsPanel } from './SettingsPanel'
 import { SearchPanel } from './SearchPanel'
 import { FileBrowser } from './FileBrowser'
 import { OrphanManager } from './OrphanManager'
+import { RSSManager } from './RSSManager'
 import { useUpdateCheck } from '../hooks/useUpdateCheck'
 import { formatSpeed, formatSize } from '../utils/format'
 
 declare const __APP_VERSION__: string
 
 type Tab = 'dashboard' | 'tools'
-type Tool = 'indexers' | 'files' | 'orphans' | null
+type Tool = 'indexers' | 'files' | 'orphans' | 'rss' | null
 
 interface InstanceStats {
 	id: number
@@ -388,6 +389,20 @@ export function InstanceManager({ username, onSelectInstance, onLogout }: Props)
 							</button>
 							<OrphanManager instances={instances} />
 						</>
+					) : activeTool === 'rss' ? (
+						<>
+							<button
+								onClick={() => setActiveTool(null)}
+								className="flex items-center gap-2 mb-6 text-sm hover:underline"
+								style={{ color: 'var(--text-muted)' }}
+							>
+								<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+									<path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+								</svg>
+								Back to Tools
+							</button>
+							<RSSManager instances={instances} />
+						</>
 					) : (
 						<>
 							<h1 className="text-xl font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>Tools</h1>
@@ -426,6 +441,17 @@ export function InstanceManager({ username, onSelectInstance, onLogout }: Props)
 									</svg>
 									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>Orphan Manager</div>
 									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Clean up torrents</div>
+								</button>
+								<button
+									onClick={() => setActiveTool('rss')}
+									className="p-6 rounded-xl border text-left transition-all hover:border-[var(--accent)]"
+									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+								>
+									<svg className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+										<path strokeLinecap="round" strokeLinejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+									</svg>
+									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>RSS Manager</div>
+									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Feeds & auto-download</div>
 								</button>
 							</div>
 						</>

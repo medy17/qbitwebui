@@ -3,8 +3,9 @@ import { type Instance } from '../api/instances'
 import { MobileSearchPanel } from './MobileSearchPanel'
 import { MobileFileBrowser } from './MobileFileBrowser'
 import { MobileOrphanManager } from './MobileOrphanManager'
+import { MobileRSSManager } from './MobileRSSManager'
 
-type Tool = 'search' | 'files' | 'orphans' | null
+type Tool = 'search' | 'files' | 'orphans' | 'rss' | null
 
 interface Props {
 	instances: Instance[]
@@ -31,6 +32,10 @@ export function MobileTools({ instances }: Props) {
 
 	if (activeTool === 'orphans') {
 		return <MobileOrphanManager instances={instances} onBack={() => setActiveTool(null)} />
+	}
+
+	if (activeTool === 'rss') {
+		return <MobileRSSManager instances={instances} onBack={() => setActiveTool(null)} />
 	}
 
 	return (
@@ -107,6 +112,32 @@ export function MobileTools({ instances }: Props) {
 						<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Orphan Manager</h3>
 						<p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
 							Find torrents with missing files
+						</p>
+					</div>
+					<svg className="w-5 h-5 mt-1 shrink-0" style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+						<path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+					</svg>
+				</div>
+			</button>
+
+			<button
+				onClick={() => setActiveTool('rss')}
+				className="w-full p-4 rounded-2xl border text-left active:scale-[0.98] transition-transform"
+				style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+			>
+				<div className="flex items-start gap-4">
+					<div
+						className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+						style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 15%, transparent)' }}
+					>
+						<svg className="w-6 h-6" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+							<path strokeLinecap="round" strokeLinejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+						</svg>
+					</div>
+					<div className="flex-1 min-w-0">
+						<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>RSS Manager</h3>
+						<p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
+							Manage feeds and auto-download rules
 						</p>
 					</div>
 					<svg className="w-5 h-5 mt-1 shrink-0" style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
