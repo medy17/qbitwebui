@@ -1,10 +1,86 @@
 import { useState } from 'react'
 import { type Instance } from '../api/instances'
 import { useRSSManager } from '../hooks/useRSSManager'
+import type { RSSArticle } from '../types/rss'
 import { Checkbox, Select } from '../components/ui'
 
 type Tab = 'feeds' | 'rules'
 type View = 'list' | 'articles' | 'editor'
+
+interface MobileArticleDownloadProps {
+	article: RSSArticle
+	idx: number
+	instances: Instance[]
+	rss: ReturnType<typeof useRSSManager>
+}
+
+function MobileArticleDownload({ article, idx, instances, rss }: MobileArticleDownloadProps) {
+	const articleId = article.id || String(idx)
+	const isGrabbing = rss.grabbing === articleId
+	const grabResult = rss.grabResult?.id === articleId ? rss.grabResult : null
+
+	if (grabResult) {
+		return (
+			<span
+				className="px-3 py-1.5 rounded-lg text-xs font-medium"
+				style={{
+					backgroundColor: grabResult.success ? 'color-mix(in srgb, #a6e3a1 20%, transparent)' : 'color-mix(in srgb, var(--error) 20%, transparent)',
+					color: grabResult.success ? '#a6e3a1' : 'var(--error)',
+				}}
+			>
+				{grabResult.success ? 'Added!' : 'Failed'}
+			</span>
+		)
+	}
+
+	if (instances.length === 1) {
+		return (
+			<button
+				onClick={() => rss.handleGrabArticle(article.torrentURL!, articleId, instances[0].id)}
+				disabled={isGrabbing}
+				className="px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50"
+				style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
+			>
+				{isGrabbing ? 'Adding...' : 'Download'}
+			</button>
+		)
+	}
+
+	const isOpen = rss.instanceDropdown === articleId
+
+	return (
+		<div className="relative inline-block">
+			<button
+				onClick={() => rss.setInstanceDropdown(isOpen ? null : articleId)}
+				disabled={isGrabbing}
+				className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50"
+				style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
+			>
+				{isGrabbing ? 'Adding...' : 'Download'}
+				<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+					<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+				</svg>
+			</button>
+			{isOpen && (
+				<>
+					<div className="fixed inset-0 z-10" onClick={() => rss.setInstanceDropdown(null)} />
+					<div className="absolute left-0 top-full mt-1 z-20 min-w-[140px] rounded-xl border shadow-lg overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}>
+						{instances.map(i => (
+							<button
+								key={i.id}
+								onClick={() => rss.handleGrabArticle(article.torrentURL!, articleId, i.id)}
+								className="w-full text-left px-4 py-2.5 text-sm active:bg-[var(--bg-tertiary)]"
+								style={{ color: 'var(--text-primary)' }}
+							>
+								{i.label}
+							</button>
+						))}
+					</div>
+				</>
+			)}
+		</div>
+	)
+}
 
 interface Props {
 	instances: Instance[]
@@ -251,51 +327,12 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 									)}
 									{article.torrentURL && (
 										<div className="mt-2">
-											{rss.grabResult?.id === (article.id || String(idx)) ? (
-												<span className="px-3 py-1.5 rounded-lg text-xs font-medium" style={{ backgroundColor: rss.grabResult.success ? 'color-mix(in srgb, #a6e3a1 20%, transparent)' : 'color-mix(in srgb, var(--error) 20%, transparent)', color: rss.grabResult.success ? '#a6e3a1' : 'var(--error)' }}>
-													{rss.grabResult.success ? 'Added!' : 'Failed'}
-												</span>
-											) : instances.length === 1 ? (
-												<button
-													onClick={() => rss.handleGrabArticle(article.torrentURL!, article.id || String(idx), instances[0].id)}
-													disabled={rss.grabbing === (article.id || String(idx))}
-													className="px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50"
-													style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
-												>
-													{rss.grabbing === (article.id || String(idx)) ? 'Adding...' : 'Download'}
-												</button>
-											) : (
-												<div className="relative inline-block">
-													<button
-														onClick={() => rss.setInstanceDropdown(rss.instanceDropdown === (article.id || String(idx)) ? null : (article.id || String(idx)))}
-														disabled={rss.grabbing === (article.id || String(idx))}
-														className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50"
-														style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
-													>
-														{rss.grabbing === (article.id || String(idx)) ? 'Adding...' : 'Download'}
-														<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-															<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-														</svg>
-													</button>
-													{rss.instanceDropdown === (article.id || String(idx)) && (
-														<>
-															<div className="fixed inset-0 z-10" onClick={() => rss.setInstanceDropdown(null)} />
-															<div className="absolute left-0 top-full mt-1 z-20 min-w-[140px] rounded-xl border shadow-lg overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}>
-																{instances.map(i => (
-																	<button
-																		key={i.id}
-																		onClick={() => rss.handleGrabArticle(article.torrentURL!, article.id || String(idx), i.id)}
-																		className="w-full text-left px-4 py-2.5 text-sm active:bg-[var(--bg-tertiary)]"
-																		style={{ color: 'var(--text-primary)' }}
-																	>
-																		{i.label}
-																	</button>
-																))}
-															</div>
-														</>
-													)}
-												</div>
-											)}
+											<MobileArticleDownload
+												article={article}
+												idx={idx}
+												instances={instances}
+												rss={rss}
+											/>
 										</div>
 									)}
 								</div>

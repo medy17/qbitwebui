@@ -1,9 +1,85 @@
 import { useState } from 'react'
 import { type Instance } from '../api/instances'
 import { useRSSManager } from '../hooks/useRSSManager'
+import type { RSSArticle } from '../types/rss'
 import { Checkbox, Select } from './ui'
 
 type Tab = 'feeds' | 'rules'
+
+interface ArticleDownloadProps {
+	article: RSSArticle
+	idx: number
+	instances: Instance[]
+	rss: ReturnType<typeof useRSSManager>
+}
+
+function ArticleDownload({ article, idx, instances, rss }: ArticleDownloadProps) {
+	const articleId = article.id || String(idx)
+	const isGrabbing = rss.grabbing === articleId
+	const grabResult = rss.grabResult?.id === articleId ? rss.grabResult : null
+
+	if (grabResult) {
+		return (
+			<span
+				className="px-2 py-1 rounded text-[10px] font-medium"
+				style={{
+					backgroundColor: grabResult.success ? 'color-mix(in srgb, #a6e3a1 20%, transparent)' : 'color-mix(in srgb, var(--error) 20%, transparent)',
+					color: grabResult.success ? '#a6e3a1' : 'var(--error)',
+				}}
+			>
+				{grabResult.success ? 'Added!' : 'Failed'}
+			</span>
+		)
+	}
+
+	if (instances.length === 1) {
+		return (
+			<button
+				onClick={() => rss.handleGrabArticle(article.torrentURL!, articleId, instances[0].id)}
+				disabled={isGrabbing}
+				className="px-2 py-1 rounded text-[10px] font-medium disabled:opacity-50"
+				style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
+			>
+				{isGrabbing ? '...' : 'Download'}
+			</button>
+		)
+	}
+
+	const isOpen = rss.instanceDropdown === articleId
+
+	return (
+		<div className="relative">
+			<button
+				onClick={() => rss.setInstanceDropdown(isOpen ? null : articleId)}
+				disabled={isGrabbing}
+				className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium disabled:opacity-50"
+				style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
+			>
+				{isGrabbing ? '...' : 'Download'}
+				<svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+					<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+				</svg>
+			</button>
+			{isOpen && (
+				<>
+					<div className="fixed inset-0 z-10" onClick={() => rss.setInstanceDropdown(null)} />
+					<div className="absolute right-0 top-full mt-1 z-20 min-w-[120px] rounded-lg border shadow-lg overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}>
+						{instances.map(i => (
+							<button
+								key={i.id}
+								onClick={() => rss.handleGrabArticle(article.torrentURL!, articleId, i.id)}
+								className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-[var(--bg-tertiary)] transition-colors"
+								style={{ color: 'var(--text-primary)' }}
+							>
+								{i.label}
+							</button>
+						))}
+					</div>
+				</>
+			)}
+		</div>
+	)
+}
 
 interface Props {
 	instances: Instance[]
@@ -257,51 +333,12 @@ export function RSSManager({ instances }: Props) {
 												)}
 											</div>
 											{article.torrentURL && (
-												rss.grabResult?.id === (article.id || String(idx)) ? (
-													<span className="px-2 py-1 rounded text-[10px] font-medium" style={{ backgroundColor: rss.grabResult.success ? 'color-mix(in srgb, #a6e3a1 20%, transparent)' : 'color-mix(in srgb, var(--error) 20%, transparent)', color: rss.grabResult.success ? '#a6e3a1' : 'var(--error)' }}>
-														{rss.grabResult.success ? 'Added!' : 'Failed'}
-													</span>
-												) : instances.length === 1 ? (
-													<button
-														onClick={() => rss.handleGrabArticle(article.torrentURL!, article.id || String(idx), instances[0].id)}
-														disabled={rss.grabbing === (article.id || String(idx))}
-														className="px-2 py-1 rounded text-[10px] font-medium disabled:opacity-50"
-														style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
-													>
-														{rss.grabbing === (article.id || String(idx)) ? '...' : 'Download'}
-													</button>
-												) : (
-													<div className="relative">
-														<button
-															onClick={() => rss.setInstanceDropdown(rss.instanceDropdown === (article.id || String(idx)) ? null : (article.id || String(idx)))}
-															disabled={rss.grabbing === (article.id || String(idx))}
-															className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium disabled:opacity-50"
-															style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
-														>
-															{rss.grabbing === (article.id || String(idx)) ? '...' : 'Download'}
-															<svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-																<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-															</svg>
-														</button>
-														{rss.instanceDropdown === (article.id || String(idx)) && (
-															<>
-																<div className="fixed inset-0 z-10" onClick={() => rss.setInstanceDropdown(null)} />
-																<div className="absolute right-0 top-full mt-1 z-20 min-w-[120px] rounded-lg border shadow-lg overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}>
-																	{instances.map(i => (
-																		<button
-																			key={i.id}
-																			onClick={() => rss.handleGrabArticle(article.torrentURL!, article.id || String(idx), i.id)}
-																			className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-[var(--bg-tertiary)] transition-colors"
-																			style={{ color: 'var(--text-primary)' }}
-																		>
-																			{i.label}
-																		</button>
-																	))}
-																</div>
-															</>
-														)}
-													</div>
-												)
+												<ArticleDownload
+													article={article}
+													idx={idx}
+													instances={instances}
+													rss={rss}
+												/>
 											)}
 										</div>
 									))

@@ -22,20 +22,17 @@ export function MobileTools({ instances }: Props) {
 			.catch(() => {})
 	}, [])
 
-	if (activeTool === 'search') {
-		return <MobileSearchPanel instances={instances} onBack={() => setActiveTool(null)} />
-	}
+	const handleBack = () => setActiveTool(null)
 
-	if (activeTool === 'files') {
-		return <MobileFileBrowser onBack={() => setActiveTool(null)} />
-	}
-
-	if (activeTool === 'orphans') {
-		return <MobileOrphanManager instances={instances} onBack={() => setActiveTool(null)} />
-	}
-
-	if (activeTool === 'rss') {
-		return <MobileRSSManager instances={instances} onBack={() => setActiveTool(null)} />
+	switch (activeTool) {
+		case 'search':
+			return <MobileSearchPanel instances={instances} onBack={handleBack} />
+		case 'files':
+			return <MobileFileBrowser onBack={handleBack} />
+		case 'orphans':
+			return <MobileOrphanManager instances={instances} onBack={handleBack} />
+		case 'rss':
+			return <MobileRSSManager instances={instances} onBack={handleBack} />
 	}
 
 	return (

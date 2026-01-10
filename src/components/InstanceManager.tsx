@@ -7,6 +7,7 @@ import { SearchPanel } from './SearchPanel'
 import { FileBrowser } from './FileBrowser'
 import { OrphanManager } from './OrphanManager'
 import { RSSManager } from './RSSManager'
+import { Checkbox } from './ui'
 import { useUpdateCheck } from '../hooks/useUpdateCheck'
 import { formatSpeed, formatSize } from '../utils/format'
 
@@ -347,7 +348,7 @@ export function InstanceManager({ username, onSelectInstance, onLogout }: Props)
 
 			<main className="max-w-6xl mx-auto p-6">
 				{tab === 'tools' ? (
-					activeTool === 'indexers' ? (
+					activeTool ? (
 						<>
 							<button
 								onClick={() => setActiveTool(null)}
@@ -359,49 +360,10 @@ export function InstanceManager({ username, onSelectInstance, onLogout }: Props)
 								</svg>
 								Back to Tools
 							</button>
-							<SearchPanel />
-						</>
-					) : activeTool === 'files' ? (
-						<>
-							<button
-								onClick={() => setActiveTool(null)}
-								className="flex items-center gap-2 mb-6 text-sm hover:underline"
-								style={{ color: 'var(--text-muted)' }}
-							>
-								<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-									<path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-								</svg>
-								Back to Tools
-							</button>
-							<FileBrowser />
-						</>
-					) : activeTool === 'orphans' ? (
-						<>
-							<button
-								onClick={() => setActiveTool(null)}
-								className="flex items-center gap-2 mb-6 text-sm hover:underline"
-								style={{ color: 'var(--text-muted)' }}
-							>
-								<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-									<path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-								</svg>
-								Back to Tools
-							</button>
-							<OrphanManager instances={instances} />
-						</>
-					) : activeTool === 'rss' ? (
-						<>
-							<button
-								onClick={() => setActiveTool(null)}
-								className="flex items-center gap-2 mb-6 text-sm hover:underline"
-								style={{ color: 'var(--text-muted)' }}
-							>
-								<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-									<path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-								</svg>
-								Back to Tools
-							</button>
-							<RSSManager instances={instances} />
+							{activeTool === 'indexers' && <SearchPanel />}
+							{activeTool === 'files' && <FileBrowser />}
+							{activeTool === 'orphans' && <OrphanManager instances={instances} />}
+							{activeTool === 'rss' && <RSSManager instances={instances} />}
 						</>
 					) : (
 						<>
@@ -603,17 +565,11 @@ export function InstanceManager({ username, onSelectInstance, onLogout }: Props)
 								</div>
 							</div>
 
-							<label className="flex items-center gap-3 cursor-pointer">
-								<input
-									type="checkbox"
-									checked={formData.skip_auth}
-									onChange={(e) => setFormData({ ...formData, skip_auth: e.target.checked })}
-									className="w-4 h-4 rounded"
-								/>
-								<span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-									Skip authentication (enable if qBittorrent has IP bypass enabled)
-								</span>
-							</label>
+							<Checkbox
+								checked={formData.skip_auth ?? false}
+								onChange={(v) => setFormData({ ...formData, skip_auth: v })}
+								label="Skip authentication (enable if qBittorrent has IP bypass enabled)"
+							/>
 
 							{testResult && (
 								<div
