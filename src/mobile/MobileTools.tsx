@@ -4,8 +4,9 @@ import { MobileSearchPanel } from './MobileSearchPanel'
 import { MobileFileBrowser } from './MobileFileBrowser'
 import { MobileOrphanManager } from './MobileOrphanManager'
 import { MobileRSSManager } from './MobileRSSManager'
+import { MobileLogViewer } from './MobileLogViewer'
 
-type Tool = 'search' | 'files' | 'orphans' | 'rss' | null
+type Tool = 'search' | 'files' | 'orphans' | 'rss' | 'logs' | null
 
 interface Props {
 	instances: Instance[]
@@ -33,6 +34,8 @@ export function MobileTools({ instances }: Props) {
 			return <MobileOrphanManager instances={instances} onBack={handleBack} />
 		case 'rss':
 			return <MobileRSSManager instances={instances} onBack={handleBack} />
+		case 'logs':
+			return <MobileLogViewer instances={instances} onBack={handleBack} />
 	}
 
 	return (
@@ -135,6 +138,32 @@ export function MobileTools({ instances }: Props) {
 						<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>RSS Manager</h3>
 						<p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
 							Manage feeds and auto-download rules
+						</p>
+					</div>
+					<svg className="w-5 h-5 mt-1 shrink-0" style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+						<path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+					</svg>
+				</div>
+			</button>
+
+			<button
+				onClick={() => setActiveTool('logs')}
+				className="w-full p-4 rounded-2xl border text-left active:scale-[0.98] transition-transform"
+				style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+			>
+				<div className="flex items-start gap-4">
+					<div
+						className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+						style={{ backgroundColor: 'color-mix(in srgb, var(--text-muted) 15%, transparent)' }}
+					>
+						<svg className="w-6 h-6" style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+							<path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+						</svg>
+					</div>
+					<div className="flex-1 min-w-0">
+						<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Log Viewer</h3>
+						<p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
+							View application and peer logs
 						</p>
 					</div>
 					<svg className="w-5 h-5 mt-1 shrink-0" style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

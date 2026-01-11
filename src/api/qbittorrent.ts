@@ -380,3 +380,42 @@ export async function renameRSSRule(instanceId: number, ruleName: string, newRul
 export async function getMatchingArticles(instanceId: number, ruleName: string): Promise<MatchingArticles> {
 	return request<MatchingArticles>(instanceId, `/rss/matchingArticles?ruleName=${encodeURIComponent(ruleName)}`)
 }
+
+export interface LogEntry {
+	id: number
+	message: string
+	timestamp: number
+	type: number
+}
+
+export interface PeerLogEntry {
+	id: number
+	ip: string
+	timestamp: number
+	blocked: boolean
+	reason: string
+}
+
+export interface LogOptions {
+	normal?: boolean
+	info?: boolean
+	warning?: boolean
+	critical?: boolean
+	lastKnownId?: number
+}
+
+export async function getLog(instanceId: number, options: LogOptions = {}): Promise<LogEntry[]> {
+	const params = new URLSearchParams()
+	if (options.normal !== undefined) params.set('normal', String(options.normal))
+	if (options.info !== undefined) params.set('info', String(options.info))
+	if (options.warning !== undefined) params.set('warning', String(options.warning))
+	if (options.critical !== undefined) params.set('critical', String(options.critical))
+	if (options.lastKnownId !== undefined) params.set('last_known_id', String(options.lastKnownId))
+	const query = params.toString()
+	return request<LogEntry[]>(instanceId, `/log/main${query ? `?${query}` : ''}`)
+}
+
+export async function getPeerLog(instanceId: number, lastKnownId?: number): Promise<PeerLogEntry[]> {
+	const params = lastKnownId !== undefined ? `?last_known_id=${lastKnownId}` : ''
+	return request<PeerLogEntry[]>(instanceId, `/log/peers${params}`)
+}
