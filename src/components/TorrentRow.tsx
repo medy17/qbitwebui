@@ -81,7 +81,7 @@ function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): React
 				</div>
 			)
 		case 'eta':
-			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{torrent.eta > 0 && torrent.eta < 8640000 ? formatEta(torrent.eta) : '—'}</span>
+			return <span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>{torrent.eta > 0 && torrent.eta < 8640000 ? formatEta(torrent.eta) : '—'}</span>
 		case 'status':
 			return (
 				<span
@@ -93,23 +93,23 @@ function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): React
 				</span>
 			)
 		case 'size':
-			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatSize(torrent.size)}</span>
+			return <span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>{formatSize(torrent.size)}</span>
 		case 'downloaded':
-			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatSize(torrent.downloaded)}</span>
+			return <span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>{formatSize(torrent.downloaded)}</span>
 		case 'uploaded':
-			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatSize(torrent.uploaded)}</span>
+			return <span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>{formatSize(torrent.uploaded)}</span>
 		case 'dlspeed':
-			return <span className="text-xs font-mono font-medium" style={{ color: 'var(--accent)' }}>{formatSpeed(torrent.dlspeed, false)}</span>
+			return <span className="text-xs font-mono font-medium whitespace-nowrap" style={{ color: 'var(--accent)' }}>{formatSpeed(torrent.dlspeed, false)}</span>
 		case 'upspeed':
-			return <span className="text-xs font-mono font-medium" style={{ color: 'var(--warning)' }}>{formatSpeed(torrent.upspeed, false)}</span>
+			return <span className="text-xs font-mono font-medium whitespace-nowrap" style={{ color: 'var(--warning)' }}>{formatSpeed(torrent.upspeed, false)}</span>
 		case 'ratio':
-			return <span className="text-xs font-mono font-medium" style={{ color: ctx.ratioColor }}>{torrent.ratio.toFixed(2)}</span>
+			return <span className="text-xs font-mono font-medium whitespace-nowrap" style={{ color: ctx.ratioColor }}>{torrent.ratio.toFixed(2)}</span>
 		case 'seeding_time':
-			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatDuration(torrent.seeding_time)}</span>
+			return <span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>{formatDuration(torrent.seeding_time)}</span>
 		case 'added_on':
-			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatDate(torrent.added_on)}</span>
+			return <span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>{formatDate(torrent.added_on)}</span>
 		case 'completion_on':
-			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatDate(torrent.completion_on)}</span>
+			return <span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>{formatDate(torrent.completion_on)}</span>
 		case 'category':
 			return <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{torrent.category || '—'}</span>
 		case 'tags':
@@ -127,7 +127,7 @@ function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): React
 		case 'num_leechs':
 			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{torrent.num_leechs}</span>
 		case 'last_activity':
-			return <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{formatRelativeTime(torrent.last_activity)}</span>
+			return <span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>{formatRelativeTime(torrent.last_activity)}</span>
 		case 'save_path':
 			return <span className="text-xs font-mono truncate max-w-[150px] block" title={torrent.save_path} style={{ color: 'var(--text-muted)' }}>{torrent.save_path}</span>
 		case 'tracker':
