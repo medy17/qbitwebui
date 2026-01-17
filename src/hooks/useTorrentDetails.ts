@@ -38,6 +38,7 @@ export function useTorrentFiles(hash: string | null) {
 		queryKey: ['torrent-files', instance.id, hash],
 		queryFn: () => api.getTorrentFiles(instance.id, hash!),
 		enabled: !!hash,
+		refetchInterval: 5000,
 	})
 }
 
