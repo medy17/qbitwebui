@@ -533,7 +533,12 @@ export function SearchPanel() {
 								{paginatedResults.map((result) => (
 									<tr key={result.guid} className="hover:bg-[var(--bg-tertiary)]" style={{ borderBottom: '1px solid var(--border)' }}>
 										<td className="px-4 py-3" style={{ color: 'var(--text-primary)' }}>
-											<div className="truncate" title={result.title}>{result.title}</div>
+											<div className="truncate flex items-center gap-2" title={result.title}>
+												{result.indexerFlags?.some(f => /free\s*leech|^free$/i.test(f)) && (
+													<span title="Freeleech" className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold cursor-help" style={{ backgroundColor: 'color-mix(in srgb, #a6e3a1 20%, transparent)', color: '#a6e3a1' }}>FL</span>
+												)}
+												<span className="truncate">{result.title}</span>
+											</div>
 										</td>
 										<td className="px-4 py-3 truncate" style={{ color: 'var(--text-muted)' }}>{result.indexer}</td>
 										<td className="px-4 py-3 text-right whitespace-nowrap" style={{ color: 'var(--text-secondary)' }}>{formatSize(result.size)}</td>

@@ -429,8 +429,11 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								className="p-3 rounded-xl border active:scale-[0.99] transition-transform cursor-pointer"
 								style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 							>
-								<div className="text-sm font-medium leading-snug line-clamp-2" style={{ color: 'var(--text-primary)' }}>
-									{result.title}
+								<div className="text-sm font-medium leading-snug line-clamp-2 flex items-start gap-1.5" style={{ color: 'var(--text-primary)' }}>
+									{result.indexerFlags?.some(f => /free\s*leech|^free$/i.test(f)) && (
+										<span onClick={(e) => { e.stopPropagation(); alert('Freeleech') }} className="shrink-0 mt-0.5 px-1 py-0.5 rounded text-[9px] font-bold" style={{ backgroundColor: 'color-mix(in srgb, #a6e3a1 20%, transparent)', color: '#a6e3a1' }}>FL</span>
+									)}
+									<span className="line-clamp-2">{result.title}</span>
 								</div>
 								<div className="flex items-center gap-3 mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
 									<span className="truncate max-w-[100px]">{result.indexer}</span>

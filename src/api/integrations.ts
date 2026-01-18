@@ -32,6 +32,7 @@ export interface SearchResult {
 	seeders?: number
 	leechers?: number
 	categories: { id: number; name: string }[]
+	indexerFlags?: string[]
 }
 
 export async function getIntegrations(): Promise<Integration[]> {
