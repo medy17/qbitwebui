@@ -11,7 +11,7 @@ const instances = new Hono()
 
 instances.use('*', authMiddleware)
 
-export interface InstanceResponse {
+interface InstanceResponse {
 	id: number
 	label: string
 	url: string
@@ -20,7 +20,7 @@ export interface InstanceResponse {
 	created_at: number
 }
 
-export function instanceToResponse(i: Instance): InstanceResponse {
+function toResponse(i: Instance): InstanceResponse {
 	return {
 		id: i.id,
 		label: i.label,
@@ -36,7 +36,7 @@ instances.get('/', (c) => {
 	const list = db.query<Instance, [number]>(
 		'SELECT * FROM instances WHERE user_id = ? ORDER BY created_at'
 	).all(user.id)
-	return c.json(list.map(instanceToResponse))
+	return c.json(list.map(toResponse))
 })
 
 interface TorrentInfo {
@@ -190,7 +190,7 @@ instances.post('/', async (c) => {
 			return c.json({ error: 'Failed to create instance' }, 500)
 		}
 
-		return c.json(instanceToResponse(instance), 201)
+		return c.json(toResponse(instance), 201)
 	} catch (e: unknown) {
 		if (e instanceof Error && e.message.includes('UNIQUE')) {
 			return c.json({ error: 'Instance with this label already exists' }, 400)
@@ -260,7 +260,7 @@ instances.put('/:id', async (c) => {
 		return c.json({ error: 'Failed to update instance' }, 500)
 	}
 
-	return c.json(instanceToResponse(updated))
+	return c.json(toResponse(updated))
 })
 
 instances.post('/:id/test', async (c) => {

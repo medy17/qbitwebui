@@ -4,7 +4,6 @@ import { readdir, stat, rm, rename, cp, writeFile, unlink } from 'node:fs/promis
 import { join, resolve, basename, dirname } from 'node:path'
 import { createReadStream } from 'node:fs'
 import * as tar from 'tar-stream'
-import { sanitizeFilename } from '../utils/validation'
 
 const files = new Hono()
 const DOWNLOADS_PATH = process.env.DOWNLOADS_PATH
@@ -18,6 +17,10 @@ function isPathSafe(requestedPath: string): string | null {
 	const resolved = resolve(base, requestedPath.replace(/^\/+/, ''))
 	if (resolved !== base && !resolved.startsWith(base + '/')) return null
 	return resolved
+}
+
+function sanitizeFilename(name: string): string {
+	return name.replace(/["\r\n]/g, '_')
 }
 
 interface FileEntry {
