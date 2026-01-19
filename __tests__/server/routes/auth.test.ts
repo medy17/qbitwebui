@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { validatePassword, validateUsername } from '../../../src/server/routes/auth'
+import { validatePassword, validateUsername } from '../../../src/server/utils/validation'
 
-describe('auth routes', () => {
+describe('auth validation', () => {
     describe('validatePassword', () => {
         it('rejects empty password', () => {
             expect(validatePassword('')).toBe('Password must be at least 8 characters')
