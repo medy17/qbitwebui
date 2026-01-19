@@ -1,3 +1,4 @@
+# local data
 node_modules
 dist
 *.local
@@ -5,6 +6,11 @@ dist
 CLAUDE.md
 docker-compose.yml
 data/
+
+# dbs
 *.db
 *.db-wal
 *.db-shm
+
+# tests
+coverage/
