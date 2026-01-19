@@ -206,14 +206,14 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 								<button
 									key={t.id}
 									onClick={() => setTab(t.id)}
-									className="flex-1 px-2 py-2 rounded-lg text-xs font-medium transition-all text-center"
+									className="flex-1 px-1 py-2 rounded-lg text-xs font-medium transition-all text-center whitespace-nowrap"
 									style={{
 										backgroundColor: tab === t.id ? 'var(--accent)' : 'transparent',
 										color: tab === t.id ? 'var(--accent-contrast)' : 'var(--text-muted)',
 									}}
 								>
 									{t.label}
-									{t.count !== undefined ? ` (${t.count})` : ''}
+									{t.count ? ` (${t.count})` : ''}
 								</button>
 							))}
 						</div>
