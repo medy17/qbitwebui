@@ -1,14 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTheme } from '../hooks/useTheme'
-import { ThemeCreator } from './ThemeCreator'
-import type { Theme } from '../themes'
+import { ThemeManager } from './ThemeManager'
 
 export function ThemeSwitcher() {
-	const { theme, setTheme, themes, customThemes, deleteTheme, addTheme, updateTheme } = useTheme()
+	const { theme, setTheme, themes, customThemes } = useTheme()
 	const [open, setOpen] = useState(false)
-	const [showCreator, setShowCreator] = useState(false)
-	// Track which theme we're editing (null = creating new)
-	const [editingTheme, setEditingTheme] = useState<{ theme: Theme; isCustom: boolean } | null>(null)
+	const [showManager, setShowManager] = useState(false)
 	const ref = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
@@ -53,152 +50,68 @@ export function ThemeSwitcher() {
 							Official
 						</div>
 						{themes.map((t) => (
-							<div key={t.id} className="relative group">
-								<button
-									onClick={() => {
-										setTheme(t.id)
-										setOpen(false)
-									}}
-									className="w-full flex items-center gap-3 px-3 py-2 text-left transition-colors"
-									style={{
-										backgroundColor:
-											theme.id === t.id ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
-										color: theme.id === t.id ? 'var(--accent)' : 'var(--text-secondary)',
-									}}
-								>
-									<div className="flex gap-1 shrink-0">
-										<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.colors.bgPrimary }} />
-										<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.colors.accent }} />
-										<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.colors.warning }} />
-									</div>
-									<span className="text-xs font-medium truncate">{t.name}</span>
-									{theme.id === t.id && (
-										<svg className="w-3 h-3 ml-auto shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-											<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-										</svg>
-									)}
-								</button>
-								{/* Edit button for official themes (opens as preset) */}
-								<button
-									onClick={(e) => {
-										e.stopPropagation()
-										setOpen(false)
-										setEditingTheme({ theme: t, isCustom: false })
-										setShowCreator(true)
-									}}
-									className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--text-muted)] hover:text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--bg-tertiary)] rounded shadow-sm"
-									title="Use as preset"
-								>
-									<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-									</svg>
-								</button>
-							</div>
+							<ThemeRow key={t.id} t={t} isActive={theme.id === t.id} onSelect={() => { setTheme(t.id); setOpen(false) }} />
 						))}
 
-						{/* Custom Themes Section */}
-						<div className="my-1 border-t border-[var(--border)]" />
-
+						{/* Custom Themes */}
 						{customThemes.length > 0 && (
 							<>
+								<div className="my-1 border-t border-[var(--border)]" />
 								<div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider opacity-50 select-none text-[var(--text-muted)]">
 									Custom
 								</div>
 								{customThemes.map((t) => (
-									<div key={t.id} className="relative group/item">
-										<button
-											onClick={() => {
-												setTheme(t.id)
-												setOpen(false)
-											}}
-											className="w-full flex items-center gap-3 px-3 py-2 text-left transition-colors"
-											style={{
-												backgroundColor:
-													theme.id === t.id ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
-												color: theme.id === t.id ? 'var(--accent)' : 'var(--text-secondary)',
-											}}
-										>
-											<div className="flex gap-1 shrink-0">
-												<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.colors.bgPrimary }} />
-												<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.colors.accent }} />
-												<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.colors.warning }} />
-											</div>
-											<span className="text-xs font-medium truncate">{t.name}</span>
-											{theme.id === t.id && (
-												<svg className="w-3 h-3 ml-auto shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-													<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-												</svg>
-											)}
-										</button>
-										{/* Edit Button */}
-										<button
-											onClick={(e) => {
-												e.stopPropagation()
-												setOpen(false)
-												setEditingTheme({ theme: t, isCustom: true })
-												setShowCreator(true)
-											}}
-											className="absolute right-8 top-1/2 -translate-y-1/2 p-1 text-[var(--text-muted)] hover:text-[var(--accent)] opacity-0 group-hover/item:opacity-100 transition-opacity bg-[var(--bg-tertiary)] rounded shadow-sm"
-											title="Edit Theme"
-										>
-											<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-											</svg>
-										</button>
-										{/* Delete Button */}
-										<button
-											onClick={(e) => {
-												e.stopPropagation()
-												deleteTheme(t.id)
-											}}
-											className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--text-muted)] hover:text-[var(--error)] opacity-0 group-hover/item:opacity-100 transition-opacity bg-[var(--bg-tertiary)] rounded shadow-sm"
-											title="Delete Theme"
-										>
-											<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-											</svg>
-										</button>
-									</div>
+									<ThemeRow key={t.id} t={t} isActive={theme.id === t.id} onSelect={() => { setTheme(t.id); setOpen(false) }} />
 								))}
 							</>
 						)}
 
+						{/* Manage Themes */}
+						<div className="my-1 border-t border-[var(--border)]" />
 						<button
 							onClick={() => {
 								setOpen(false)
-								setShowCreator(true)
+								setShowManager(true)
 							}}
-							className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-[var(--accent)] hover:bg-[var(--bg-primary)] transition-colors"
+							className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
 						>
 							<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
 							</svg>
-							Make Theme
+							Manage Themes
 						</button>
 					</div>
 				)}
 			</div>
 
-			{showCreator && (
-				<ThemeCreator
-					onClose={() => {
-						setShowCreator(false)
-						setEditingTheme(null)
-					}}
-					initialTheme={editingTheme?.theme}
-					editingId={editingTheme?.isCustom ? editingTheme.theme.id : undefined}
-					existingNames={[...themes.map((t) => t.name), ...customThemes.map((t) => t.name)]}
-					onSave={(savedTheme) => {
-						if (editingTheme?.isCustom) {
-							updateTheme(savedTheme)
-						} else {
-							addTheme(savedTheme)
-						}
-						setShowCreator(false)
-						setEditingTheme(null)
-					}}
-				/>
-			)}
+			{showManager && <ThemeManager onClose={() => setShowManager(false)} />}
 		</>
+	)
+}
+
+// Simple theme row component
+function ThemeRow({ t, isActive, onSelect }: { t: { id: string; name: string; colors: { bgPrimary: string; accent: string; warning: string } }; isActive: boolean; onSelect: () => void }) {
+	return (
+		<button
+			onClick={onSelect}
+			className="w-full flex items-center gap-3 px-3 py-2 text-left transition-colors"
+			style={{
+				backgroundColor: isActive ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+				color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+			}}
+		>
+			<div className="flex gap-1 shrink-0">
+				<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.colors.bgPrimary }} />
+				<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.colors.accent }} />
+				<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.colors.warning }} />
+			</div>
+			<span className="text-xs font-medium truncate">{t.name}</span>
+			{isActive && (
+				<svg className="w-3 h-3 ml-auto shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+					<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+				</svg>
+			)}
+		</button>
 	)
 }
