@@ -27,6 +27,7 @@
     "hono": "^4.11.4",
     "jszip": "^3.10.1",
     "react": "^19.2.3",
+    "react-colorful": "^5.6.1",
     "react-dom": "^19.2.3",
     "tar-stream": "^3.1.7",
     "vaul": "^1.1.2"

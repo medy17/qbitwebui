@@ -1,5 +1,6 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Drawer } from 'vaul'
+import { HexColorPicker } from 'react-colorful'
 import { generateThemeColors, isValidHex } from '../utils/colorUtils'
 import { useTheme } from '../hooks/useTheme'
 import type { Theme } from '../themes'
@@ -352,32 +353,7 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 				{/* Color Inputs */}
 				<div className="grid grid-cols-1 gap-3">
 					{colorFields.map((field) => (
-						<div key={field.label} className="space-y-1">
-							<label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
-								{field.label}
-							</label>
-							<div className="flex items-center gap-2">
-								<div
-									className="w-10 h-10 rounded-xl shrink-0"
-									style={{
-										backgroundColor: isValidHex(field.val) ? field.val : 'transparent',
-										border: '1px solid var(--border)',
-									}}
-								/>
-								<input
-									type="text"
-									value={field.val}
-									onChange={(e) => field.set(e.target.value)}
-									className="flex-1 px-3 py-2.5 font-mono text-xs rounded-xl focus:outline-none"
-									style={{
-										backgroundColor: 'var(--bg-secondary)',
-										color: 'var(--text-primary)',
-										border: '1px solid var(--border)',
-									}}
-									placeholder="#000000"
-								/>
-							</div>
-						</div>
+						<ColorInput key={field.label} label={field.label} value={field.val} onChange={field.set} />
 					))}
 				</div>
 
@@ -426,5 +402,60 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 				</button>
 			</div>
 		</>
+	)
+}
+
+function ColorInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+	const [open, setOpen] = useState(false)
+	const ref = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		if (!open) return
+		function handleClick(e: MouseEvent) {
+			if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+		}
+		document.addEventListener('mousedown', handleClick)
+		return () => document.removeEventListener('mousedown', handleClick)
+	}, [open])
+
+	return (
+		<div className="space-y-1">
+			<label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
+				{label}
+			</label>
+			<div className="flex items-center gap-2">
+				<div ref={ref} className="relative">
+					<button
+						type="button"
+						onClick={() => setOpen(!open)}
+						className="w-10 h-10 rounded-xl shrink-0 cursor-pointer active:scale-95 transition-transform"
+						style={{
+							backgroundColor: isValidHex(value) ? value : 'transparent',
+							border: '1px solid var(--border)',
+						}}
+					/>
+					{open && (
+						<div
+							className="absolute top-full left-0 mt-2 z-10 p-3 rounded-xl shadow-xl"
+							style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
+						>
+							<HexColorPicker color={isValidHex(value) ? value : '#000000'} onChange={onChange} />
+						</div>
+					)}
+				</div>
+				<input
+					type="text"
+					value={value}
+					onChange={(e) => onChange(e.target.value)}
+					className="flex-1 px-3 py-2.5 font-mono text-xs rounded-xl focus:outline-none"
+					style={{
+						backgroundColor: 'var(--bg-secondary)',
+						color: 'var(--text-primary)',
+						border: '1px solid var(--border)',
+					}}
+					placeholder="#000000"
+				/>
+			</div>
+		</div>
 	)
 }

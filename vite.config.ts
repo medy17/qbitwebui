@@ -12,9 +12,14 @@ export default defineConfig(() => {
 		build: {
 			rollupOptions: {
 				output: {
-					manualChunks: {
-						vendor: ['react', 'react-dom', '@tanstack/react-query'],
-						jszip: ['jszip'],
+					manualChunks(id) {
+						if (id.includes('node_modules')) {
+							if (id.includes('react') || id.includes('scheduler')) return 'vendor'
+							if (id.includes('@tanstack')) return 'vendor'
+							if (id.includes('jszip')) return 'jszip'
+							const match = id.match(/node_modules\/(?:\.pnpm\/)?([^@/][^/]*)/)
+							if (match) return `lib-${match[1]}`
+						}
 					},
 				},
 			},
