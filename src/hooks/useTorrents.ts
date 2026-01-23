@@ -30,6 +30,15 @@ export function useStartTorrents() {
 	})
 }
 
+export function useRecheckTorrents() {
+	const instance = useInstance()
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (hashes: string[]) => api.recheckTorrents(instance.id, hashes),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: ['torrents', instance.id] }),
+	})
+}
+
 export function useDeleteTorrents() {
 	const instance = useInstance()
 	const queryClient = useQueryClient()

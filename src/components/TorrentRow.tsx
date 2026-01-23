@@ -43,12 +43,38 @@ function getColor(type: StateType): string {
 	return colors[type]
 }
 
+const TWO_PART_TLD_MARKERS = new Set(['co', 'com', 'net', 'org', 'gov', 'edu'])
+
+function getTrackerName(tracker: string): string {
+	if (!tracker) return '—'
+	let host = ''
+	try {
+		host = new URL(tracker).hostname
+	} catch {
+		const withoutScheme = tracker.replace(/^[a-z]+:\/\//i, '')
+		const hostPort = withoutScheme.split('/')[0] ?? ''
+		host = hostPort.split(':')[0] ?? ''
+	}
+	if (!host || host.startsWith('**')) return '—'
+	const normalized = host.replace(/^www\./i, '')
+	const parts = normalized.split('.').filter(Boolean)
+	if (parts.length === 0) return '—'
+	if (parts.length === 1) return parts[0]
+	const tld = parts[parts.length - 1]
+	const sld = parts[parts.length - 2]
+	if (tld.length === 2 && TWO_PART_TLD_MARKERS.has(sld) && parts.length >= 3) {
+		return parts[parts.length - 3]
+	}
+	return sld
+}
+
 interface CellContext {
 	stateColor: string
 	stateLabel: string
 	isComplete: boolean
 	progress: number
 	ratioColor: string
+	hideAddedTime: boolean
 }
 
 function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): ReactNode {
@@ -151,12 +177,14 @@ function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): React
 					{formatDuration(torrent.seeding_time)}
 				</span>
 			)
-		case 'added_on':
+		case 'added_on': {
+			const dateStr = formatDate(torrent.added_on)
 			return (
 				<span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
-					{formatDate(torrent.added_on)}
+					{ctx.hideAddedTime ? dateStr.split(',')[0] : dateStr}
 				</span>
 			)
+		}
 		case 'completion_on':
 			return (
 				<span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
@@ -164,10 +192,12 @@ function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): React
 				</span>
 			)
 		case 'category':
-			return (
-				<span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
-					{torrent.category || '—'}
+			return torrent.category ? (
+				<span className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 text-white/70 border border-white/10 whitespace-nowrap">
+					{torrent.category}
 				</span>
+			) : (
+				<span className="text-xs text-gray-500">—</span>
 			)
 		case 'tags':
 			return torrent.tags ? (
@@ -222,6 +252,18 @@ function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): React
 					{torrent.tracker}
 				</span>
 			)
+		case 'tracker_name': {
+			const trackerName = getTrackerName(torrent.tracker)
+			return (
+				<span
+					className="text-xs font-mono truncate max-w-[140px] block"
+					title={torrent.tracker || trackerName}
+					style={{ color: 'var(--text-muted)' }}
+				>
+					{trackerName}
+				</span>
+			)
+		}
 		default:
 			return null
 	}
@@ -233,6 +275,7 @@ interface Props {
 	onSelect: (hash: string, multi: boolean) => void
 	onContextMenu: (e: React.MouseEvent) => void
 	ratioThreshold: number
+	hideAddedTime: boolean
 	visibleColumns: Set<string>
 	columnOrder: string[]
 	columnWidths: Record<string, number>
@@ -245,6 +288,7 @@ export function TorrentRow({
 	onSelect,
 	onContextMenu,
 	ratioThreshold,
+	hideAddedTime,
 	visibleColumns,
 	columnOrder,
 	columnWidths,
@@ -257,7 +301,7 @@ export function TorrentRow({
 	const ratioRounded = Math.round(torrent.ratio * 100) / 100
 	const ratioColor = ratioRounded >= ratioThreshold ? '#a6e3a1' : '#f38ba8'
 
-	const cellContext = { stateColor, stateLabel: label, isComplete, progress, ratioColor }
+	const cellContext = { stateColor, stateLabel: label, isComplete, progress, ratioColor, hideAddedTime }
 
 	return (
 		<tr

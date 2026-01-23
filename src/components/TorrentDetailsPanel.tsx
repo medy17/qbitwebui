@@ -478,7 +478,10 @@ function ContentTabInner({ hash, files }: { hash: string; files: TorrentFile[] }
 										)}
 									</div>
 								</td>
-								<td className="px-3 py-1.5 text-right font-mono whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+								<td
+									className="px-3 py-1.5 text-right font-mono whitespace-nowrap"
+									style={{ color: 'var(--text-muted)' }}
+								>
 									{formatSize(node.size)}
 								</td>
 								<td className="px-3 py-1.5 text-right">

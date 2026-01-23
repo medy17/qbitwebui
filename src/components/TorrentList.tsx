@@ -32,7 +32,9 @@ import {
 } from './FilterBar'
 import { ContextMenu } from './ContextMenu'
 import { RatioThresholdPopup } from './RatioThresholdPopup'
+import { DateSettingsPopup } from './DateSettingsPopup'
 import { loadRatioThreshold, saveRatioThreshold } from '../utils/ratioThresholds'
+import { loadHideAddedTime, saveHideAddedTime } from '../utils/dateSettings'
 import { normalizeSearch } from '../utils/format'
 import { COLUMNS, DEFAULT_VISIBLE_COLUMNS, DEFAULT_COLUMN_ORDER, type SortKey } from './columns'
 import { usePagination } from '../hooks/usePagination'
@@ -101,6 +103,8 @@ export function TorrentList() {
 	const [contextMenu, setContextMenu] = useState<{ x: number; y: number; torrents: Torrent[] } | null>(null)
 	const [ratioThreshold, setRatioThreshold] = useState(loadRatioThreshold)
 	const [ratioPopupAnchor, setRatioPopupAnchor] = useState<HTMLElement | null>(null)
+	const [hideAddedTime, setHideAddedTime] = useState(loadHideAddedTime)
+	const [datePopupAnchor, setDatePopupAnchor] = useState<HTMLElement | null>(null)
 	const [managerModal, setManagerModal] = useState(false)
 
 	const [visibleColumns, setVisibleColumns] = useState<Set<string>>(() => {
@@ -111,7 +115,19 @@ export function TorrentList() {
 
 	const [columnOrder, setColumnOrder] = useState<string[]>(() => {
 		const stored = localStorage.getItem('columnOrder')
-		if (stored) return JSON.parse(stored)
+		if (stored) {
+			const parsed = JSON.parse(stored)
+			if (Array.isArray(parsed)) {
+				const known = new Set(COLUMNS.map((c) => c.id))
+				const cleaned = parsed.filter((id) => known.has(id))
+				const missing = DEFAULT_COLUMN_ORDER.filter((id) => !cleaned.includes(id))
+				const merged = [...cleaned, ...missing]
+				if (missing.length > 0 || cleaned.length !== parsed.length) {
+					localStorage.setItem('columnOrder', JSON.stringify(merged))
+				}
+				return merged
+			}
+		}
 		return DEFAULT_COLUMN_ORDER
 	})
 
@@ -470,6 +486,24 @@ export function TorrentList() {
 														<Settings className="w-3 h-3" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 													</button>
 												</div>
+											) : col.id === 'added_on' ? (
+												<div className="flex items-center gap-1">
+													<button
+														onClick={() => handleSort('added_on')}
+														className="flex items-center gap-2 text-[9px] font-medium uppercase tracking-widest transition-colors"
+														style={{ color: 'var(--text-muted)' }}
+													>
+														{col.label}
+														<SortIcon active={sortKey === 'added_on'} asc={sortAsc} />
+													</button>
+													<button
+														onClick={(e) => setDatePopupAnchor(e.currentTarget)}
+														className="p-0.5 rounded opacity-50 hover:opacity-100 transition-opacity"
+														title="Date display settings"
+													>
+														<Settings className="w-3 h-3" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
+													</button>
+												</div>
 											) : col.sortKey ? (
 												<button
 													onClick={() => handleSort(col.sortKey!)}
@@ -524,6 +558,7 @@ export function TorrentList() {
 									onSelect={handleSelect}
 									onContextMenu={(e) => handleContextMenu(e, t)}
 									ratioThreshold={ratioThreshold}
+									hideAddedTime={hideAddedTime}
 									visibleColumns={visibleColumns}
 									columnOrder={columnOrder}
 									columnWidths={columnWidths}
@@ -638,6 +673,18 @@ export function TorrentList() {
 						setRatioThreshold(t)
 					}}
 					onClose={() => setRatioPopupAnchor(null)}
+				/>
+			)}
+
+			{datePopupAnchor && (
+				<DateSettingsPopup
+					anchor={datePopupAnchor}
+					hideTime={hideAddedTime}
+					onSave={(hide) => {
+						saveHideAddedTime(hide)
+						setHideAddedTime(hide)
+					}}
+					onClose={() => setDatePopupAnchor(null)}
 				/>
 			)}
 		</div>

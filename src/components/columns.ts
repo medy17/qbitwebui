@@ -45,7 +45,8 @@ export const COLUMNS: ColumnDef[] = [
 	{ id: 'num_leechs', label: 'Peers', sortKey: 'num_leechs' },
 	{ id: 'last_activity', label: 'Last Active', sortKey: 'last_activity' },
 	{ id: 'save_path', label: 'Save Path', sortKey: 'save_path' },
-	{ id: 'tracker', label: 'Tracker', sortKey: 'tracker' },
+	{ id: 'tracker_name', label: 'Tracker', sortKey: 'tracker' },
+	{ id: 'tracker', label: 'Tracker (URL)', sortKey: 'tracker' },
 ]
 
 export const DEFAULT_VISIBLE_COLUMNS = new Set([
