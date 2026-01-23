@@ -1,6 +1,7 @@
 import { useMemo, type ReactNode } from 'react'
 import type { Instance } from '../api/instances'
 import { InstanceContext } from './instanceContext'
+export { InstanceContext } from './instanceContext'
 
 interface Props {
 	instance: Instance

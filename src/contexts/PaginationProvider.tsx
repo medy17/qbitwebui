@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { PaginationContext } from './paginationContext'
+export { PaginationContext, type PaginationContextValue } from './paginationContext'
 
 export function PaginationProvider({ children }: { children: ReactNode }) {
 	const [page, setPage] = useState(1)
