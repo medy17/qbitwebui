@@ -180,9 +180,7 @@ tools.post('/speedtest', async (c) => {
 			const torrents = await qbtRequest<Torrent[]>(instance, cookie, '/torrents/info')
 			if (!torrents) continue
 
-			const stillActive = torrents.filter(
-				(t) => hashes.includes(t.hash) && !pausedStates.has(t.state)
-			)
+			const stillActive = torrents.filter((t) => hashes.includes(t.hash) && !pausedStates.has(t.state))
 
 			if (stillActive.length > 0) {
 				allPaused = false

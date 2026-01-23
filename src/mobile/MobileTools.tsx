@@ -41,7 +41,7 @@ export function MobileTools({ instances }: Props): ReactNode {
 		fetch('/api/config')
 			.then((r) => r.json())
 			.then((c) => setFilesEnabled(c.filesEnabled))
-			.catch(() => { })
+			.catch(() => {})
 	}, [])
 
 	const handleBack = () => setActiveTool(null)
@@ -261,11 +261,7 @@ export function MobileTools({ instances }: Props): ReactNode {
 							stroke="currentColor"
 							strokeWidth={1.5}
 						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M5.636 19.364a9 9 0 1 1 12.728 0M16 9l-4 4"
-							/>
+							<path strokeLinecap="round" strokeLinejoin="round" d="M5.636 19.364a9 9 0 1 1 12.728 0M16 9l-4 4" />
 						</svg>
 					</div>
 					<div className="flex-1 min-w-0">
