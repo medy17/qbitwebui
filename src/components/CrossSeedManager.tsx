@@ -408,10 +408,17 @@ export function CrossSeedManager({ instances }: Props) {
 							<button
 								onClick={() => handleScan(true)}
 								disabled={isRunning || !config.integration_id}
-								className="px-3 py-2 rounded-lg text-sm border disabled:opacity-50"
+								className="px-3 py-2 rounded-lg text-sm border disabled:opacity-50 flex items-center justify-center gap-1.5"
 								style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
 							>
 								Force Scan
+								<span
+									title="Re-scans all torrents, including those already searched. Use when indexers have new content or after changing settings."
+									className="inline-flex items-center justify-center w-4 h-4 rounded-full text-xs cursor-help"
+									style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-muted)' }}
+								>
+									?
+								</span>
 							</button>
 							<button
 								onClick={handleStop}
@@ -426,10 +433,17 @@ export function CrossSeedManager({ instances }: Props) {
 							</button>
 							<button
 								onClick={handleClearCache}
-								className="px-3 py-2 rounded-lg text-sm border"
+								className="px-3 py-2 rounded-lg text-sm border flex items-center justify-center gap-1.5"
 								style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
 							>
 								Clear Torrents
+								<span
+									title="Removes cached .torrent files."
+									className="inline-flex items-center justify-center w-4 h-4 rounded-full text-xs cursor-help"
+									style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-muted)' }}
+								>
+									?
+								</span>
 							</button>
 						</div>
 					</div>
@@ -465,13 +479,25 @@ export function CrossSeedManager({ instances }: Props) {
 								No logs
 							</div>
 						) : (
-							logs.map((log, i) => (
-								<div key={i} className="py-0.5 whitespace-pre-wrap break-all">
-									<span style={{ color: 'var(--text-muted)' }}>{log.timestamp.slice(11, 19)}</span>{' '}
-									<span style={{ color: LOG_LEVEL_COLORS[log.level] || 'var(--text-muted)' }}>[{log.level}]</span>{' '}
-									<span>{log.message}</span>
-								</div>
-							))
+							logs.map((log, i) => {
+								const isMatch = log.message.includes('MATCH:')
+								const isAdded = log.message.includes('Added torrent:')
+								const isInjection = isMatch || isAdded
+								return (
+									<div key={i} className="py-0.5 whitespace-pre-wrap break-all">
+										<span style={{ color: 'var(--text-muted)' }}>{log.timestamp.slice(11, 19)}</span>{' '}
+										<span style={{ color: LOG_LEVEL_COLORS[log.level] || 'var(--text-muted)' }}>[{log.level}]</span>{' '}
+										<span
+											style={{
+												color: isInjection ? '#a6e3a1' : undefined,
+												fontWeight: isInjection ? 500 : undefined,
+											}}
+										>
+											{log.message}
+										</span>
+									</div>
+								)
+							})
 						)}
 					</div>
 				</div>

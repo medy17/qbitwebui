@@ -365,9 +365,11 @@ function parseFileSizesFromTorrent(torrentData: Buffer): FileInfo[] | null {
 	if (!info) return null
 
 	if (info.files) {
+		const torrentName = info.name?.toString() || ''
 		return info.files.map((file) => {
 			const pathParts = file.path || []
-			const name = pathParts.length > 0 ? pathParts[pathParts.length - 1].toString() : ''
+			const internalPath = pathParts.map((p) => p.toString()).join('/')
+			const name = torrentName ? `${torrentName}/${internalPath}` : internalPath
 			return { name, size: Number(file.length) }
 		})
 	}
@@ -648,6 +650,9 @@ export async function runCrossSeedScan(options: ScanOptions): Promise<ScanResult
 	const blocklist: string[] = config.blocklist ? JSON.parse(config.blocklist) : []
 	const includeSingleEpisodes = !!config.include_single_episodes
 
+	let processedCount = 0
+	const totalToProcess = completedTorrents.length
+
 	for (const torrent of completedTorrents) {
 		if (options.signal?.aborted) {
 			const error = new Error('Scan aborted')
@@ -655,6 +660,7 @@ export async function runCrossSeedScan(options: ScanOptions): Promise<ScanResult
 			throw error
 		}
 
+		processedCount++
 		const existingSearchee = existingSearchees.get(torrent.hash)
 		if (existingSearchee && !options.force) {
 			result.torrentsSkipped++
@@ -662,7 +668,7 @@ export async function runCrossSeedScan(options: ScanOptions): Promise<ScanResult
 		}
 
 		result.torrentsScanned++
-		log.info(`[CrossSeed] Searching for: ${torrent.name}`)
+		log.info(`[CrossSeed] [${processedCount}/${totalToProcess}] Searching for: ${torrent.name}`)
 
 		try {
 			const files = await qbtRequest<QbtFile[]>(instance, loginResult.cookie, `/torrents/files?hash=${torrent.hash}`)
@@ -671,7 +677,7 @@ export async function runCrossSeedScan(options: ScanOptions): Promise<ScanResult
 				continue
 			}
 
-			const sourceFiles: FileInfo[] = files.map((f) => ({ name: basename(f.name), size: f.size }))
+			const sourceFiles: FileInfo[] = files.map((f) => ({ name: f.name, size: f.size }))
 
 			if (blocklist.length > 0) {
 				const searchee: Searchee = {
@@ -870,7 +876,7 @@ export async function runCrossSeedScan(options: ScanOptions): Promise<ScanResult
 							const sourceFilesWithPaths = files.map((f) => ({
 								name: basename(f.name),
 								size: f.size,
-								path: torrent.content_path.endsWith(f.name) ? torrent.content_path : join(torrent.content_path, f.name),
+								path: join(torrent.save_path, f.name),
 							}))
 
 							const canLink = await canCreateHardlink(sourceFilesWithPaths[0]?.path || '', config.link_dir)

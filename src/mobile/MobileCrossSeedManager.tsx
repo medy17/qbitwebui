@@ -457,15 +457,27 @@ export function MobileCrossSeedManager({ instances, onBack }: Props): ReactNode 
 												No logs
 											</div>
 										) : (
-											logs.map((log, i) => (
-												<div key={i} className="py-0.5 whitespace-pre-wrap break-all">
-													<span style={{ color: 'var(--text-muted)' }}>{log.timestamp.slice(11, 19)}</span>{' '}
-													<span style={{ color: LOG_LEVEL_COLORS[log.level] || 'var(--text-muted)' }}>
-														[{log.level}]
-													</span>{' '}
-													<span>{log.message}</span>
-												</div>
-											))
+											logs.map((log, i) => {
+												const isMatch = log.message.includes('MATCH:')
+												const isAdded = log.message.includes('Added torrent:')
+												const isInjection = isMatch || isAdded
+												return (
+													<div key={i} className="py-0.5 whitespace-pre-wrap break-all">
+														<span style={{ color: 'var(--text-muted)' }}>{log.timestamp.slice(11, 19)}</span>{' '}
+														<span style={{ color: LOG_LEVEL_COLORS[log.level] || 'var(--text-muted)' }}>
+															[{log.level}]
+														</span>{' '}
+														<span
+															style={{
+																color: isInjection ? '#a6e3a1' : undefined,
+																fontWeight: isInjection ? 500 : undefined,
+															}}
+														>
+															{log.message}
+														</span>
+													</div>
+												)
+											})
 										)}
 									</div>
 								</div>

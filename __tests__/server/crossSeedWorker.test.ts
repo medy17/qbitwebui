@@ -460,8 +460,8 @@ describe('crossSeedWorker', () => {
 
 		mockDownloadTorrentDirect.mockResolvedValue(
 			makeMultiFileTorrentData('Show.S01', [
-				{ path: ['Show.S01', 'E01.mkv'], length: 1000 },
-				{ path: ['Show.S01', 'E02.mkv'], length: 2000 },
+				{ path: ['E01.mkv'], length: 1000 },
+				{ path: ['E02.mkv'], length: 2000 },
 			])
 		)
 
@@ -513,6 +513,102 @@ describe('crossSeedWorker', () => {
 		expect(fsMocks.link.mock.calls.length).toBeGreaterThan(0)
 		expect(fsMocks.link.mock.calls[0][0]).toBe('/downloads/Movie.2024.1080p.mkv')
 		expect(fsMocks.link.mock.calls[0][1]).toBe('/links/Movie.2024.1080p.REPACK.mkv')
+	})
+
+	it('detects structure mismatch when single-file source matches multi-file candidate with folder', async () => {
+		state.config!.match_mode = 'flexible'
+		state.config!.link_dir = '/links'
+
+		const torrents = [
+			{
+				hash: 'HASH4',
+				name: 'Movie.2024.1080p.mkv',
+				size: 1000,
+				state: 'uploading',
+				category: 'movies',
+				tags: '',
+				save_path: '/downloads',
+				content_path: '/downloads/Movie.2024.1080p.mkv',
+				progress: 1,
+			},
+		]
+		const files = [{ name: 'Movie.2024.1080p.mkv', size: 1000 }]
+		mockQbtResponses(torrents, files)
+
+		mockSearchAllIndexers.mockResolvedValue([
+			{
+				guid: 'guid-4',
+				title: 'Movie (2024)',
+				link: 'http://indexer/download/4',
+				size: 1000,
+				pubDate: '',
+				indexer: 'Test',
+				indexerId: 1,
+			},
+		])
+
+		mockDownloadTorrentDirect.mockResolvedValue(
+			makeMultiFileTorrentData('Movie (2024)', [{ path: ['Movie.2024.1080p.mkv'], length: 1000 }])
+		)
+
+		const result = await runCrossSeedScan({ instanceId: 1, userId: 1, force: false })
+
+		expect(result.matchesFound).toBe(1)
+		expect(result.torrentsAdded).toBe(1)
+		expect(fsMocks.link.mock.calls.length).toBeGreaterThan(0)
+		expect(fsMocks.link.mock.calls[0][1]).toBe('/links/Movie (2024)/Movie.2024.1080p.mkv')
+	})
+
+	it('constructs correct source paths for multi-file hardlinks', async () => {
+		state.config!.match_mode = 'flexible'
+		state.config!.link_dir = '/links'
+
+		const torrents = [
+			{
+				hash: 'HASH5',
+				name: 'Show.S01',
+				size: 3000,
+				state: 'uploading',
+				category: 'shows',
+				tags: '',
+				save_path: '/downloads',
+				content_path: '/downloads/Show.S01',
+				progress: 1,
+			},
+		]
+		const files = [
+			{ name: 'Show.S01/E01.mkv', size: 1000 },
+			{ name: 'Show.S01/E02.mkv', size: 2000 },
+		]
+		mockQbtResponses(torrents, files)
+
+		mockSearchAllIndexers.mockResolvedValue([
+			{
+				guid: 'guid-5',
+				title: 'Show Season 1',
+				link: 'http://indexer/download/5',
+				size: 3000,
+				pubDate: '',
+				indexer: 'Test',
+				indexerId: 1,
+			},
+		])
+
+		mockDownloadTorrentDirect.mockResolvedValue(
+			makeMultiFileTorrentData('Show Season 1', [
+				{ path: ['Episode01.mkv'], length: 1000 },
+				{ path: ['Episode02.mkv'], length: 2000 },
+			])
+		)
+
+		const result = await runCrossSeedScan({ instanceId: 1, userId: 1, force: false })
+
+		expect(result.matchesFound).toBe(1)
+		expect(result.torrentsAdded).toBe(1)
+		expect(fsMocks.link.mock.calls[0][0]).toBe('/downloads/Show.S01/E01.mkv')
+		expect(fsMocks.link.mock.calls[0][1]).toBe('/links/Show Season 1/Episode01.mkv')
+		expect(fsMocks.link.mock.calls[1][0]).toBe('/downloads/Show.S01/E02.mkv')
+		expect(fsMocks.link.mock.calls[1][1]).toBe('/links/Show Season 1/Episode02.mkv')
 	})
 
 	it('saves to output in dry-run mode', async () => {
