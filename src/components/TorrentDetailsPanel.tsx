@@ -52,15 +52,25 @@ const MIN_HEIGHT = 120
 const MAX_HEIGHT_PERCENT = 0.55
 const COLLAPSED_HEIGHT = 36
 
-function getTrackerStatus(status: number): { label: string; colorVar: string } {
-	const statuses: Record<number, { label: string; colorVar: string }> = {
-		0: { label: 'Disabled', colorVar: 'var(--text-muted)' },
-		1: { label: 'Not contacted', colorVar: 'var(--text-muted)' },
-		2: { label: 'Working', colorVar: 'var(--accent)' },
-		3: { label: 'Updating', colorVar: 'var(--warning)' },
-		4: { label: 'Error', colorVar: 'var(--error)' },
-	}
-	return statuses[status] ?? { label: 'Unknown', colorVar: 'var(--text-muted)' }
+const TRACKER_STATUSES: Record<number, { label: string; colorVar: string }> = {
+	0: { label: 'Disabled', colorVar: 'var(--text-muted)' },
+	1: { label: 'Not contacted', colorVar: 'var(--text-muted)' },
+	2: { label: 'Working', colorVar: 'var(--accent)' },
+	3: { label: 'Updating', colorVar: 'var(--warning)' },
+	4: { label: 'Error', colorVar: 'var(--error)' },
+}
+
+function StatusBadge({ status }: { status: number }) {
+	const { label, colorVar } = TRACKER_STATUSES[status] ?? { label: 'Unknown', colorVar: 'var(--text-muted)' }
+	return (
+		<span
+			className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium"
+			style={{ color: colorVar, backgroundColor: `color-mix(in srgb, ${colorVar} 10%, transparent)` }}
+		>
+			<span className="w-1 h-1 rounded-full" style={{ backgroundColor: colorVar }} />
+			{label}
+		</span>
+	)
 }
 
 function LoadingSkeleton() {
@@ -90,18 +100,27 @@ function EmptyState({ message }: { message: string }) {
 	)
 }
 
-function InfoItem({ label, value, accent }: { label: string; value: string | number; accent?: boolean }) {
+function formatLimit(limit: number): string {
+	return limit <= 0 ? '∞' : formatSpeed(limit)
+}
+
+const cellBase = { backgroundColor: 'color-mix(in srgb, white 2.5%, transparent)', borderColor: 'var(--border)' }
+
+function InfoCell({ label, value, accent, muted, span, wide }: { label: string; value: string; accent?: boolean; muted?: boolean; span?: number; wide?: boolean }) {
+	const color = muted ? 'var(--text-muted)' : accent ? 'var(--accent)' : 'var(--text-primary)'
 	return (
 		<div
-			className="flex flex-col gap-0.5 px-3 py-2 rounded border"
-			style={{ backgroundColor: 'color-mix(in srgb, white 2.5%, transparent)', borderColor: 'var(--border)' }}
+			className={`px-3 py-2 rounded border ${wide ? '' : 'min-w-0 overflow-hidden'}`}
+			style={{ ...cellBase, gridColumn: span ? `span ${span}` : undefined }}
 		>
-			<span className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-				{label}
-			</span>
-			<span className="text-xs font-mono" style={{ color: accent ? 'var(--accent)' : 'var(--text-primary)' }}>
+			<div className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{label}</div>
+			<div
+				className={`text-xs font-mono mt-0.5 ${wide ? 'break-all' : 'truncate'}`}
+				style={{ color }}
+				title={wide ? undefined : value}
+			>
 				{value}
-			</span>
+			</div>
 		</div>
 	)
 }
@@ -110,68 +129,65 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 	const { data: p, isLoading } = useTorrentProperties(hash)
 	if (isLoading) return <LoadingSkeleton />
 	if (!p) return <EmptyState message="Failed to load" />
+
+	const ratio = p.total_downloaded === 0 && p.pieces_have === p.pieces_num && p.total_size > 0
+		? '∞'
+		: p.share_ratio.toFixed(2)
+
+	const timeActive = p.seeding_time > 0
+		? `${formatDuration(p.time_elapsed)} (seeded ${formatDuration(p.seeding_time)})`
+		: formatDuration(p.time_elapsed)
+
 	return (
-		<div className="p-3 overflow-auto h-full">
-			<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-				<InfoItem label="Downloaded" value={formatSize(p.total_downloaded)} accent />
-				<InfoItem label="Uploaded" value={formatSize(p.total_uploaded)} />
-				<InfoItem
-					label="Ratio"
-					value={
-						p.total_downloaded === 0 && p.pieces_have === p.pieces_num && p.total_size > 0
-							? '∞'
-							: p.share_ratio.toFixed(2)
-					}
-				/>
-				<InfoItem label="ETA" value={formatEta(p.eta)} />
-				<InfoItem label="DL Speed" value={formatSpeed(p.dl_speed)} accent />
-				<InfoItem label="UP Speed" value={formatSpeed(p.up_speed)} />
-				<InfoItem label="Seeds" value={`${p.seeds}/${p.seeds_total}`} accent />
-				<InfoItem label="Peers" value={`${p.peers}/${p.peers_total}`} />
-				<InfoItem label="Connections" value={`${p.nb_connections}/${p.nb_connections_limit}`} />
-				<InfoItem label="Wasted" value={formatSize(p.total_wasted)} />
-				<InfoItem label="Added" value={formatDate(p.addition_date)} />
-				<InfoItem label="Completed" value={formatDate(p.completion_date)} />
-				<InfoItem label="Size" value={formatSize(p.total_size)} />
-				<InfoItem label="Pieces" value={`${p.pieces_have}/${p.pieces_num}`} />
-				<InfoItem label="Piece Size" value={formatSize(p.piece_size)} />
-				<InfoItem label="Seeding" value={formatDuration(p.seeding_time)} />
-			</div>
-			<div
-				className="flex flex-col gap-0.5 mt-3 px-3 py-2 rounded border"
-				style={{ backgroundColor: 'color-mix(in srgb, white 2.5%, transparent)', borderColor: 'var(--border)' }}
-			>
-				<span className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-					Save Path
-				</span>
-				<span className="text-xs font-mono break-all" style={{ color: 'var(--text-primary)' }}>
-					{p.save_path}
-				</span>
-			</div>
-			<div className="grid grid-cols-2 gap-2 mt-2">
-				<div
-					className="flex flex-col gap-0.5 px-3 py-2 rounded border"
-					style={{ backgroundColor: 'color-mix(in srgb, white 2.5%, transparent)', borderColor: 'var(--border)' }}
-				>
-					<span className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-						Category
-					</span>
-					<span className="text-xs font-mono" style={{ color: category ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-						{category || '—'}
-					</span>
+		<div className="p-3 overflow-auto h-full space-y-3">
+			<fieldset className="border rounded p-2" style={{ borderColor: 'var(--border)' }}>
+				<legend className="px-2 text-[9px] uppercase tracking-widest font-medium" style={{ color: 'var(--text-muted)' }}>Transfer</legend>
+				<div className="grid grid-cols-12 gap-1.5">
+					<InfoCell label="Time Active" value={timeActive} span={2} />
+					<InfoCell label="ETA" value={formatEta(p.eta)} span={2} />
+					<InfoCell label="Connections" value={`${p.nb_connections} (${p.nb_connections_limit} max)`} span={2} />
+					<InfoCell label="Seeds" value={`${p.seeds} (${p.seeds_total} total)`} span={2} />
+					<InfoCell label="Peers" value={`${p.peers} (${p.peers_total} total)`} span={2} />
+					<InfoCell label="Wasted" value={formatSize(p.total_wasted)} span={2} />
+					<InfoCell label="Downloaded" value={`${formatSize(p.total_downloaded)} (${formatSize(p.total_downloaded_session)} session)`} span={2} />
+					<InfoCell label="Uploaded" value={`${formatSize(p.total_uploaded)} (${formatSize(p.total_uploaded_session)} session)`} span={2} />
+					<InfoCell label="DL Speed" value={`${formatSpeed(p.dl_speed)} (${formatSpeed(p.dl_speed_avg)} avg)`} span={2} />
+					<InfoCell label="UP Speed" value={`${formatSpeed(p.up_speed)} (${formatSpeed(p.up_speed_avg)} avg)`} span={2} />
+					<InfoCell label="DL Limit" value={formatLimit(p.dl_limit)} span={2} />
+					<InfoCell label="UP Limit" value={formatLimit(p.up_limit)} span={2} />
+					<InfoCell label="Ratio" value={ratio} span={3} />
+					<InfoCell label="Reannounce" value={p.reannounce > 0 ? formatDuration(p.reannounce) : '0'} span={3} />
+					<InfoCell label="Last Seen Complete" value={p.last_seen > 0 ? formatDate(p.last_seen) : 'Never'} span={3} />
+					<InfoCell label="Popularity" value={p.popularity !== undefined ? p.popularity.toFixed(2) : '—'} span={3} />
 				</div>
-				<div
-					className="flex flex-col gap-0.5 px-3 py-2 rounded border"
-					style={{ backgroundColor: 'color-mix(in srgb, white 2.5%, transparent)', borderColor: 'var(--border)' }}
-				>
-					<span className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-						Tags
-					</span>
-					<span className="text-xs font-mono" style={{ color: tags ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-						{tags || '—'}
-					</span>
+			</fieldset>
+
+			<fieldset className="border rounded p-2" style={{ borderColor: 'var(--border)' }}>
+				<legend className="px-2 text-[9px] uppercase tracking-widest font-medium" style={{ color: 'var(--text-muted)' }}>Information</legend>
+				<div className="grid grid-cols-6 gap-1.5">
+					<InfoCell label="Total Size" value={formatSize(p.total_size)} />
+					<InfoCell label="Pieces" value={`${p.pieces_num} × ${formatSize(p.piece_size)} (have ${p.pieces_have})`} />
+					<InfoCell label="Created By" value={p.created_by || '—'} />
+					<InfoCell label="Added On" value={formatDate(p.addition_date)} />
+					<InfoCell label="Completed On" value={p.completion_date > 0 ? formatDate(p.completion_date) : '—'} />
+					<InfoCell label="Created On" value={p.creation_date > 0 ? formatDate(p.creation_date) : '—'} />
+					<InfoCell label="Private" value={p.is_private ? 'Yes' : 'No'} accent={p.is_private} span={2} />
+					<InfoCell label="Category" value={category || '—'} span={2} />
+					<InfoCell label="Tags" value={tags || '—'} span={2} />
 				</div>
-			</div>
+				<div className="grid grid-cols-2 gap-1.5 mt-1.5">
+					<InfoCell label="Info Hash v1" value={p.infohash_v1 || hash} wide />
+					<InfoCell label="Info Hash v2" value={p.infohash_v2 || 'N/A'} muted={!p.infohash_v2} wide />
+				</div>
+				<div className="mt-1.5">
+					<InfoCell label="Save Path" value={p.save_path} wide />
+				</div>
+				{p.comment && (
+					<div className="mt-1.5">
+						<InfoCell label="Comment" value={p.comment} wide />
+					</div>
+				)}
+			</fieldset>
 		</div>
 	)
 }
@@ -196,7 +212,9 @@ function TrackersTab({ hash }: { hash: string }) {
 	}
 
 	if (isLoading) return <LoadingSkeleton />
-	const filtered = trackers?.filter((t: Tracker) => !t.url.startsWith('** [')) ?? []
+	const allTrackers = trackers ?? []
+	const dhtPexLsd = allTrackers.filter((t: Tracker) => t.url.startsWith('** ['))
+	const regularTrackers = allTrackers.filter((t: Tracker) => !t.url.startsWith('** ['))
 
 	return (
 		<div className="flex flex-col h-full">
@@ -246,7 +264,7 @@ function TrackersTab({ hash }: { hash: string }) {
 					</button>
 				)}
 			</div>
-			{filtered.length === 0 ? (
+			{allTrackers.length === 0 ? (
 				<EmptyState message="No trackers" />
 			) : (
 				<div className="overflow-auto flex-1">
@@ -260,56 +278,46 @@ function TrackersTab({ hash }: { hash: string }) {
 								<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest">URL</th>
 								<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest">Status</th>
 								<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest text-right">Seeds</th>
+								<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest text-right">Leeches</th>
 								<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest text-right">Peers</th>
+								<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest text-right">Downloaded</th>
 								<th className="px-3 py-2 font-medium text-[9px] uppercase tracking-widest"></th>
 							</tr>
 						</thead>
 						<tbody>
-							{filtered.map((t: Tracker, i: number) => {
-								const status = getTrackerStatus(t.status)
-								return (
-									<tr key={i} className="border-t transition-colors group" style={{ borderColor: 'var(--border)' }}>
-										<td className="px-3 py-1.5 font-mono" style={{ color: 'var(--text-muted)' }}>
-											{t.tier}
-										</td>
-										<td
-											className="px-3 py-1.5 font-mono truncate max-w-[200px]"
-											style={{ color: 'var(--text-primary)' }}
-											title={t.url}
+							{dhtPexLsd.map((t: Tracker, i: number) => (
+								<tr key={`dht-${i}`} className="border-t transition-colors" style={{ borderColor: 'var(--border)' }}>
+									<td className="px-3 py-1.5 font-mono" style={{ color: 'var(--text-muted)' }}>—</td>
+									<td className="px-3 py-1.5 font-medium" style={{ color: 'var(--accent)' }}>{t.url.replace('** [', '').replace('] **', '')}</td>
+									<td className="px-3 py-1.5"><StatusBadge status={t.status} /></td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--accent)' }}>{t.num_seeds}</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--warning)' }}>{t.num_leeches}</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>{t.num_peers}</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>{t.num_downloaded}</td>
+									<td className="px-3 py-1.5"></td>
+								</tr>
+							))}
+							{regularTrackers.map((t: Tracker, i: number) => (
+								<tr key={i} className="border-t transition-colors group" style={{ borderColor: 'var(--border)' }}>
+									<td className="px-3 py-1.5 font-mono" style={{ color: 'var(--text-muted)' }}>{t.tier}</td>
+									<td className="px-3 py-1.5 font-mono truncate max-w-[200px]" style={{ color: 'var(--text-primary)' }} title={t.url}>{t.url}</td>
+									<td className="px-3 py-1.5"><StatusBadge status={t.status} /></td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--accent)' }}>{t.num_seeds}</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--warning)' }}>{t.num_leeches}</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>{t.num_peers}</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>{t.num_downloaded}</td>
+									<td className="px-3 py-1.5 text-right">
+										<button
+											onClick={() => handleRemove(t.url)}
+											className="opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity"
+											style={{ color: 'var(--error)' }}
+											title="Remove tracker"
 										>
-											{t.url}
-										</td>
-										<td className="px-3 py-1.5">
-											<span
-												className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium"
-												style={{
-													color: status.colorVar,
-													backgroundColor: `color-mix(in srgb, ${status.colorVar} 10%, transparent)`,
-												}}
-											>
-												<span className="w-1 h-1 rounded-full" style={{ backgroundColor: status.colorVar }} />
-												{status.label}
-											</span>
-										</td>
-										<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--accent)' }}>
-											{t.num_seeds}
-										</td>
-										<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>
-											{t.num_peers}
-										</td>
-										<td className="px-3 py-1.5 text-right">
-											<button
-												onClick={() => handleRemove(t.url)}
-												className="opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity"
-												style={{ color: 'var(--error)' }}
-												title="Remove tracker"
-											>
-												<X className="w-3 h-3" strokeWidth={2} />
-											</button>
-										</td>
-									</tr>
-								)
-							})}
+											<X className="w-3 h-3" strokeWidth={2} />
+										</button>
+									</td>
+								</tr>
+							))}
 						</tbody>
 					</table>
 				</div>

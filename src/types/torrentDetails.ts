@@ -32,7 +32,10 @@ export interface TorrentProperties {
 	total_size: number
 	up_speed_avg: number
 	up_speed: number
-	isPrivate?: boolean
+	is_private?: boolean
+	infohash_v1?: string
+	infohash_v2?: string
+	popularity?: number
 }
 
 export interface Tracker {

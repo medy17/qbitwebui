@@ -101,27 +101,22 @@ export function NetworkTools({ instances }: Props) {
 	}, [selectedInstance])
 
 	useEffect(() => {
-		if (!selectedInstance || !agentOnline || loadingServers || speedtestServers.length !== 0) return
+		if (!selectedInstance || !agentOnline || speedtestServers.length !== 0) return
 		if (lastLoadedInstanceId.current === selectedInstance.id) return
 		lastLoadedInstanceId.current = selectedInstance.id
 
-		let cancelled = false
 		setLoadingServers(true)
 		void (async () => {
 			try {
 				const data = await getSpeedtestServers(selectedInstance.id)
-				if (!cancelled) setSpeedtestServers(data.servers || [])
+				setSpeedtestServers(data.servers || [])
 			} catch {
-				if (!cancelled) setSpeedtestServers([])
+				setSpeedtestServers([])
 			} finally {
-				if (!cancelled) setLoadingServers(false)
+				setLoadingServers(false)
 			}
 		})()
-
-		return () => {
-			cancelled = true
-		}
-	}, [selectedInstance, agentOnline, loadingServers, speedtestServers.length])
+	}, [selectedInstance, agentOnline, speedtestServers.length])
 
 	async function handleRunIpInfo() {
 		if (!selectedInstance) return
@@ -273,7 +268,7 @@ export function NetworkTools({ instances }: Props) {
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 				<div
-					className="rounded-xl"
+					className="rounded-xl flex flex-col"
 					style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
 				>
 					<div
@@ -288,7 +283,7 @@ export function NetworkTools({ instances }: Props) {
 						</div>
 						<RunButton onClick={handleRunIpInfo} disabled={!canRun} loading={ipInfo.status === 'loading'} />
 					</div>
-					<div className="p-4 min-h-[140px] rounded-b-xl" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+					<div className="p-4 min-h-[140px] rounded-b-xl flex-1" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
 						{!ipInfo.data && ipInfo.status !== 'error' && (
 							<p className="text-xs" style={{ color: 'var(--text-muted)' }}>
 								Click Run to fetch IP information
@@ -324,7 +319,7 @@ export function NetworkTools({ instances }: Props) {
 				</div>
 
 				<div
-					className="rounded-xl"
+					className="rounded-xl flex flex-col"
 					style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
 				>
 					<div
@@ -339,7 +334,7 @@ export function NetworkTools({ instances }: Props) {
 						</div>
 						<RunButton onClick={handleRunDns} disabled={!canRun} loading={dns.status === 'loading'} />
 					</div>
-					<div className="p-4 min-h-[140px] rounded-b-xl" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+					<div className="p-4 min-h-[140px] rounded-b-xl flex-1" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
 						{!dns.data && dns.status !== 'error' && (
 							<p className="text-xs" style={{ color: 'var(--text-muted)' }}>
 								Click Run to show DNS servers
@@ -375,7 +370,7 @@ export function NetworkTools({ instances }: Props) {
 				</div>
 
 				<div
-					className="rounded-xl"
+					className="rounded-xl flex flex-col"
 					style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
 				>
 					<div
@@ -390,7 +385,7 @@ export function NetworkTools({ instances }: Props) {
 						</div>
 						<RunButton onClick={handleRunInterfaces} disabled={!canRun} loading={ifaces.status === 'loading'} />
 					</div>
-					<div className="p-4 min-h-[140px] rounded-b-xl" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+					<div className="p-4 min-h-[140px] rounded-b-xl flex-1" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
 						{!ifaces.data && ifaces.status !== 'error' && (
 							<p className="text-xs" style={{ color: 'var(--text-muted)' }}>
 								Click Run to list network interfaces

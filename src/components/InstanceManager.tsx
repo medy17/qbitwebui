@@ -113,6 +113,7 @@ export function InstanceManager({
 		qbt_password: '',
 		skip_auth: false,
 		agent_enabled: false,
+		agent_url: '',
 	})
 	const [error, setError] = useState('')
 	const [submitting, setSubmitting] = useState(false)
@@ -197,7 +198,7 @@ export function InstanceManager({
 			}
 			setShowForm(false)
 			setEditingId(null)
-			setFormData({ label: '', url: '', qbt_username: '', qbt_password: '', skip_auth: false, agent_enabled: false })
+			setFormData({ label: '', url: '', qbt_username: '', qbt_password: '', skip_auth: false, agent_enabled: false, agent_url: '' })
 			setTestResult(null)
 			await loadInstances()
 		} catch (err) {
@@ -254,10 +255,13 @@ export function InstanceManager({
 		}
 	}
 
+	const [useCustomAgentUrl, setUseCustomAgentUrl] = useState(false)
+
 	async function handleAgentToggle(enabled: boolean) {
-		if (!enabled) return setFormData({ ...formData, agent_enabled: false })
-		if (!formData.url)
-			return setTestResult({ success: false, message: 'Enter a qBittorrent URL first to enable the agent' })
+		setFormData({ ...formData, agent_enabled: enabled, agent_url: enabled ? formData.agent_url : '' })
+		setUseCustomAgentUrl(false)
+		if (!enabled) return
+		if (!formData.url) return setTestResult({ success: false, message: 'Enter a qBittorrent URL first' })
 
 		setAgentTesting(true)
 		setTestResult(null)
@@ -272,9 +276,34 @@ export function InstanceManager({
 			setTestResult(
 				res.ok
 					? { success: true, message: 'Agent is reachable' }
+					: { success: false, message: data.error || 'Agent not reachable - try custom URL' }
+			)
+		} catch {
+			setTestResult({ success: false, message: 'Failed to test agent connection' })
+		} finally {
+			setAgentTesting(false)
+		}
+	}
+
+	async function testAgentConnection() {
+		const url = formData.agent_url || formData.url
+		if (!url) return setTestResult({ success: false, message: 'Enter a URL first' })
+
+		setAgentTesting(true)
+		setTestResult(null)
+		try {
+			const res = await fetch('/api/instances/test-agent', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include',
+				body: JSON.stringify({ url: formData.url, agent_url: formData.agent_url || undefined }),
+			})
+			const data = await res.json()
+			setTestResult(
+				res.ok
+					? { success: true, message: 'Agent is reachable' }
 					: { success: false, message: data.error || 'Agent not reachable' }
 			)
-			if (res.ok) setFormData({ ...formData, agent_enabled: true })
 		} catch {
 			setTestResult({ success: false, message: 'Failed to test agent connection' })
 		} finally {
@@ -291,7 +320,9 @@ export function InstanceManager({
 			qbt_password: '',
 			skip_auth: instance.skip_auth,
 			agent_enabled: instance.agent_enabled,
+			agent_url: instance.agent_url || '',
 		})
+		setUseCustomAgentUrl(!!instance.agent_url)
 		setTestResult(null)
 		setShowForm(true)
 	}
@@ -611,6 +642,7 @@ export function InstanceManager({
 											qbt_password: '',
 											skip_auth: false,
 											agent_enabled: false,
+											agent_url: '',
 										})
 									}}
 									className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -739,12 +771,9 @@ export function InstanceManager({
 									<Checkbox
 										checked={formData.agent_enabled ?? false}
 										onChange={handleAgentToggle}
-										disabled={agentTesting}
 										label={
 											<>
-												{agentTesting
-													? 'Testing agent...'
-													: 'Enable net-agent (network diagnostics: IP info, speedtest, etc.)'}{' '}
+												Enable net-agent (network diagnostics: IP info, speedtest, etc.){' '}
 												<a
 													href="https://maciejonos.github.io/qbitwebui/guide/network-agent/"
 													target="_blank"
@@ -758,6 +787,44 @@ export function InstanceManager({
 											</>
 										}
 									/>
+
+									{formData.agent_enabled && (
+										<div className="ml-6 space-y-2">
+											<Checkbox
+												checked={useCustomAgentUrl}
+												onChange={(v) => {
+													setUseCustomAgentUrl(v)
+													if (!v) setFormData({ ...formData, agent_url: '' })
+												}}
+												label="Use custom agent URL"
+											/>
+											{useCustomAgentUrl && (
+												<div className="flex items-center gap-2 max-w-md">
+													<input
+														type="url"
+														value={formData.agent_url || ''}
+														onChange={(e) => setFormData({ ...formData, agent_url: e.target.value })}
+														className="flex-1 min-w-0 px-2 py-1 rounded border text-xs"
+														style={{
+															backgroundColor: 'var(--bg-tertiary)',
+															borderColor: 'var(--border)',
+															color: 'var(--text-primary)',
+														}}
+														placeholder="https://agent.mydomain.com"
+													/>
+													<button
+														type="button"
+														onClick={testAgentConnection}
+														disabled={agentTesting || !formData.agent_url}
+														className="px-2 py-1 rounded text-xs border disabled:opacity-50 shrink-0"
+														style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+													>
+														{agentTesting ? '...' : 'Test'}
+													</button>
+												</div>
+											)}
+										</div>
+									)}
 
 									{testResult && (
 										<div

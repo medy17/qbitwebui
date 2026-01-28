@@ -5,6 +5,7 @@ export interface Instance {
 	qbt_username: string | null
 	skip_auth: boolean
 	agent_enabled: boolean
+	agent_url: string | null
 	created_at: number
 }
 
@@ -15,6 +16,7 @@ export interface CreateInstanceData {
 	qbt_password?: string
 	skip_auth?: boolean
 	agent_enabled?: boolean
+	agent_url?: string
 }
 
 export interface UpdateInstanceData {
@@ -24,6 +26,7 @@ export interface UpdateInstanceData {
 	qbt_password?: string
 	skip_auth?: boolean
 	agent_enabled?: boolean
+	agent_url?: string | null
 }
 
 export async function getInstances(): Promise<Instance[]> {

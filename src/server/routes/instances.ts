@@ -18,6 +18,7 @@ interface InstanceResponse {
 	qbt_username: string | null
 	skip_auth: boolean
 	agent_enabled: boolean
+	agent_url: string | null
 	created_at: number
 }
 
@@ -29,6 +30,7 @@ function toResponse(i: Instance): InstanceResponse {
 		qbt_username: i.qbt_username,
 		skip_auth: !!i.skip_auth,
 		agent_enabled: !!i.agent_enabled,
+		agent_url: i.agent_url,
 		created_at: i.created_at,
 	}
 }
@@ -160,6 +162,7 @@ instances.post('/', async (c) => {
 		qbt_password?: string
 		skip_auth?: boolean
 		agent_enabled?: boolean
+		agent_url?: string
 	}>()
 
 	if (!body.label || !body.url) {
@@ -180,8 +183,8 @@ instances.post('/', async (c) => {
 
 	try {
 		const result = db.run(
-			`INSERT INTO instances (user_id, label, url, qbt_username, qbt_password_encrypted, skip_auth, agent_enabled)
-			 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			`INSERT INTO instances (user_id, label, url, qbt_username, qbt_password_encrypted, skip_auth, agent_enabled, agent_url)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 			[
 				user.id,
 				body.label,
@@ -190,6 +193,7 @@ instances.post('/', async (c) => {
 				encrypted,
 				body.skip_auth ? 1 : 0,
 				body.agent_enabled ? 1 : 0,
+				body.agent_url || null,
 			]
 		)
 
@@ -220,6 +224,7 @@ instances.put('/:id', async (c) => {
 		qbt_password?: string
 		skip_auth?: boolean
 		agent_enabled?: boolean
+		agent_url?: string | null
 	}>()
 
 	const existing = db
@@ -231,7 +236,7 @@ instances.put('/:id', async (c) => {
 	}
 
 	const updates: string[] = []
-	const values: (string | number)[] = []
+	const values: (string | number | null)[] = []
 
 	if (body.label !== undefined) {
 		updates.push('label = ?')
@@ -261,6 +266,10 @@ instances.put('/:id', async (c) => {
 	if (body.agent_enabled !== undefined) {
 		updates.push('agent_enabled = ?')
 		values.push(body.agent_enabled ? 1 : 0)
+	}
+	if (body.agent_url !== undefined) {
+		updates.push('agent_url = ?')
+		values.push(body.agent_url || null)
 	}
 
 	if (updates.length > 0) {
@@ -330,26 +339,37 @@ instances.post('/test', async (c) => {
 })
 
 instances.post('/test-agent', async (c) => {
-	const body = await c.req.json<{ url: string }>()
+	const body = await c.req.json<{ url: string; agent_url?: string }>()
 
-	if (!body.url) {
+	if (!body.url && !body.agent_url) {
 		return c.json({ error: 'URL is required' }, 400)
 	}
 
-	try {
-		validateUrl(body.url)
-	} catch (e) {
-		return c.json({ error: e instanceof Error ? e.message : 'Invalid URL' }, 400)
+	let targetUrl: string
+	if (body.agent_url) {
+		try {
+			validateUrl(body.agent_url)
+		} catch (e) {
+			return c.json({ error: e instanceof Error ? e.message : 'Invalid agent URL' }, 400)
+		}
+		targetUrl = body.agent_url
+	} else {
+		try {
+			validateUrl(body.url)
+		} catch (e) {
+			return c.json({ error: e instanceof Error ? e.message : 'Invalid URL' }, 400)
+		}
+		const agentUrl = new URL(body.url)
+		agentUrl.port = '9876'
+		targetUrl = agentUrl.origin
 	}
 
 	try {
-		const agentUrl = new URL(body.url)
-		agentUrl.port = '9876'
-		const res = await fetchWithTls(`${agentUrl.origin}/health`, { signal: AbortSignal.timeout(5000) })
+		const res = await fetchWithTls(`${targetUrl}/health`, { signal: AbortSignal.timeout(5000) })
 		if (res.ok) return c.json({ success: true })
 		return c.json({ error: 'Agent not responding' }, 400)
 	} catch {
-		return c.json({ error: 'Agent not reachable at port 9876' }, 400)
+		return c.json({ error: 'Agent not reachable' }, 400)
 	}
 })
 

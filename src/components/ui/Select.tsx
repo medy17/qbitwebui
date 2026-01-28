@@ -35,7 +35,7 @@ export function Select<T extends string | number>({
 				type="button"
 				data-dropdown
 				onClick={() => setOpen(!open)}
-				className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border text-sm"
+				className="w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded border text-xs"
 				style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 			>
 				<span className="truncate">{selected?.label}</span>

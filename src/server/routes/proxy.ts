@@ -136,8 +136,9 @@ proxy.all('/:id/qbt/*', async (c) => {
 	}
 })
 
-function deriveAgentUrl(qbtUrl: string): string {
-	const url = new URL(qbtUrl)
+function getAgentUrl(instance: Instance): string {
+	if (instance.agent_url) return instance.agent_url
+	const url = new URL(instance.url)
 	url.port = '9876'
 	return url.origin
 }
@@ -162,7 +163,7 @@ proxy.all('/:id/agent/*', async (c) => {
 		return c.json({ error: 'Agent not enabled for this instance' }, 400)
 	}
 
-	const agentUrl = deriveAgentUrl(instance.url)
+	const agentUrl = getAgentUrl(instance)
 	const path = c.req.path.replace(`/api/instances/${instanceId}/agent`, '')
 	const queryString = c.req.url.includes('?') ? c.req.url.slice(c.req.url.indexOf('?')) : ''
 	const targetUrl = `${agentUrl}${path}${queryString}`
