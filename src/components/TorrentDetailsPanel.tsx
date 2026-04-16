@@ -23,6 +23,7 @@ import {
 	useAddTrackers,
 	useRemoveTrackers,
 } from '../hooks/useTorrentDetails'
+import { useSetTorrentDownloadPath, useSetTorrentLocation } from '../hooks/useTorrents'
 import { formatSize, formatSpeed, formatDate, formatDuration, formatEta } from '../utils/format'
 import type { Tracker, Peer } from '../types/torrentDetails'
 import { buildFileTree, flattenVisibleNodes, getInitialExpanded } from '../utils/fileTree'
@@ -142,17 +143,46 @@ function InfoCell({
 }
 
 function GeneralTab({ hash, category, tags }: { hash: string; category: string; tags: string }) {
+	const [editorMode, setEditorMode] = useState<'savePath' | 'downloadPath' | null>(null)
+	const [inputValue, setInputValue] = useState('')
 	const { data: p, isLoading } = useTorrentProperties(hash)
+	const setLocationMutation = useSetTorrentLocation()
+	const setDownloadPathMutation = useSetTorrentDownloadPath()
 	if (isLoading) return <LoadingSkeleton />
 	if (!p) return <EmptyState message="Failed to load" />
+	const properties = p
 
 	const ratio =
-		p.total_downloaded === 0 && p.pieces_have === p.pieces_num && p.total_size > 0 ? '∞' : p.share_ratio.toFixed(2)
+		properties.total_downloaded === 0 && properties.pieces_have === properties.pieces_num && properties.total_size > 0
+			? '∞'
+			: properties.share_ratio.toFixed(2)
 
 	const timeActive =
-		p.seeding_time > 0
-			? `${formatDuration(p.time_elapsed)} (seeded ${formatDuration(p.seeding_time)})`
-			: formatDuration(p.time_elapsed)
+		properties.seeding_time > 0
+			? `${formatDuration(properties.time_elapsed)} (seeded ${formatDuration(properties.seeding_time)})`
+			: formatDuration(properties.time_elapsed)
+	const pathMutationPending = setLocationMutation.isPending || setDownloadPathMutation.isPending
+
+	function openEditor(mode: 'savePath' | 'downloadPath') {
+		setInputValue(properties.save_path)
+		setEditorMode(mode)
+	}
+
+	function handlePathSave() {
+		const trimmed = inputValue.trim()
+		if (!trimmed) return
+
+		if (editorMode === 'savePath') {
+			setLocationMutation.mutate({ hashes: [hash], location: trimmed })
+			setEditorMode(null)
+			return
+		}
+
+		if (editorMode === 'downloadPath') {
+			setDownloadPathMutation.mutate({ hashes: [hash], downloadPath: trimmed })
+			setEditorMode(null)
+		}
+	}
 
 	return (
 		<div className="p-3 overflow-auto h-full space-y-3">
@@ -165,37 +195,37 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 				</legend>
 				<div className="grid grid-cols-12 gap-1.5">
 					<InfoCell label="Time Active" value={timeActive} span={2} />
-					<InfoCell label="ETA" value={formatEta(p.eta)} span={2} />
-					<InfoCell label="Connections" value={`${p.nb_connections} (${p.nb_connections_limit} max)`} span={2} />
-					<InfoCell label="Seeds" value={`${p.seeds} (${p.seeds_total} total)`} span={2} />
-					<InfoCell label="Peers" value={`${p.peers} (${p.peers_total} total)`} span={2} />
-					<InfoCell label="Wasted" value={formatSize(p.total_wasted)} span={2} />
+					<InfoCell label="ETA" value={formatEta(properties.eta)} span={2} />
+					<InfoCell label="Connections" value={`${properties.nb_connections} (${properties.nb_connections_limit} max)`} span={2} />
+					<InfoCell label="Seeds" value={`${properties.seeds} (${properties.seeds_total} total)`} span={2} />
+					<InfoCell label="Peers" value={`${properties.peers} (${properties.peers_total} total)`} span={2} />
+					<InfoCell label="Wasted" value={formatSize(properties.total_wasted)} span={2} />
 					<InfoCell
 						label="Downloaded"
-						value={`${formatSize(p.total_downloaded)} (${formatSize(p.total_downloaded_session)} session)`}
+						value={`${formatSize(properties.total_downloaded)} (${formatSize(properties.total_downloaded_session)} session)`}
 						span={2}
 					/>
 					<InfoCell
 						label="Uploaded"
-						value={`${formatSize(p.total_uploaded)} (${formatSize(p.total_uploaded_session)} session)`}
+						value={`${formatSize(properties.total_uploaded)} (${formatSize(properties.total_uploaded_session)} session)`}
 						span={2}
 					/>
 					<InfoCell
 						label="DL Speed"
-						value={`${formatSpeed(p.dl_speed)} (${formatSpeed(p.dl_speed_avg)} avg)`}
+						value={`${formatSpeed(properties.dl_speed)} (${formatSpeed(properties.dl_speed_avg)} avg)`}
 						span={2}
 					/>
 					<InfoCell
 						label="UP Speed"
-						value={`${formatSpeed(p.up_speed)} (${formatSpeed(p.up_speed_avg)} avg)`}
+						value={`${formatSpeed(properties.up_speed)} (${formatSpeed(properties.up_speed_avg)} avg)`}
 						span={2}
 					/>
-					<InfoCell label="DL Limit" value={formatLimit(p.dl_limit)} span={2} />
-					<InfoCell label="UP Limit" value={formatLimit(p.up_limit)} span={2} />
+					<InfoCell label="DL Limit" value={formatLimit(properties.dl_limit)} span={2} />
+					<InfoCell label="UP Limit" value={formatLimit(properties.up_limit)} span={2} />
 					<InfoCell label="Ratio" value={ratio} span={3} />
-					<InfoCell label="Reannounce" value={p.reannounce > 0 ? formatDuration(p.reannounce) : '0'} span={3} />
-					<InfoCell label="Last Seen Complete" value={p.last_seen > 0 ? formatDate(p.last_seen) : 'Never'} span={3} />
-					<InfoCell label="Popularity" value={p.popularity !== undefined ? p.popularity.toFixed(2) : '—'} span={3} />
+					<InfoCell label="Reannounce" value={properties.reannounce > 0 ? formatDuration(properties.reannounce) : '0'} span={3} />
+					<InfoCell label="Last Seen Complete" value={properties.last_seen > 0 ? formatDate(properties.last_seen) : 'Never'} span={3} />
+					<InfoCell label="Popularity" value={properties.popularity !== undefined ? properties.popularity.toFixed(2) : '—'} span={3} />
 				</div>
 			</fieldset>
 
@@ -207,26 +237,89 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 					Information
 				</legend>
 				<div className="grid grid-cols-6 gap-1.5">
-					<InfoCell label="Total Size" value={formatSize(p.total_size)} />
-					<InfoCell label="Pieces" value={`${p.pieces_num} × ${formatSize(p.piece_size)} (have ${p.pieces_have})`} />
-					<InfoCell label="Created By" value={p.created_by || '—'} />
-					<InfoCell label="Added On" value={formatDate(p.addition_date)} />
-					<InfoCell label="Completed On" value={p.completion_date > 0 ? formatDate(p.completion_date) : '—'} />
-					<InfoCell label="Created On" value={p.creation_date > 0 ? formatDate(p.creation_date) : '—'} />
-					<InfoCell label="Private" value={p.is_private ? 'Yes' : 'No'} accent={p.is_private} span={2} />
+					<InfoCell label="Total Size" value={formatSize(properties.total_size)} />
+					<InfoCell label="Pieces" value={`${properties.pieces_num} × ${formatSize(properties.piece_size)} (have ${properties.pieces_have})`} />
+					<InfoCell label="Created By" value={properties.created_by || '—'} />
+					<InfoCell label="Added On" value={formatDate(properties.addition_date)} />
+					<InfoCell label="Completed On" value={properties.completion_date > 0 ? formatDate(properties.completion_date) : '—'} />
+					<InfoCell label="Created On" value={properties.creation_date > 0 ? formatDate(properties.creation_date) : '—'} />
+					<InfoCell label="Private" value={properties.is_private ? 'Yes' : 'No'} accent={properties.is_private} span={2} />
 					<InfoCell label="Category" value={category || '—'} span={2} />
 					<InfoCell label="Tags" value={tags || '—'} span={2} />
 				</div>
 				<div className="grid grid-cols-2 gap-1.5 mt-1.5">
-					<InfoCell label="Info Hash v1" value={p.infohash_v1 || hash} wide />
-					<InfoCell label="Info Hash v2" value={p.infohash_v2 || 'N/A'} muted={!p.infohash_v2} wide />
+					<InfoCell label="Info Hash v1" value={properties.infohash_v1 || hash} wide />
+					<InfoCell label="Info Hash v2" value={properties.infohash_v2 || 'N/A'} muted={!properties.infohash_v2} wide />
 				</div>
 				<div className="mt-1.5">
-					<InfoCell label="Save Path" value={p.save_path} wide />
+					<InfoCell label="Save Path" value={properties.save_path} wide />
 				</div>
-				{p.comment && (
+				{properties.download_path && (
 					<div className="mt-1.5">
-						<InfoCell label="Comment" value={p.comment} wide />
+						<InfoCell label="Download Path" value={properties.download_path} wide />
+					</div>
+				)}
+				<div className="flex flex-wrap gap-2 mt-1.5">
+					<button
+						onClick={() => openEditor('savePath')}
+						disabled={pathMutationPending}
+						className="px-2.5 py-1.5 rounded text-[10px] font-medium disabled:opacity-50"
+						style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+					>
+						Change Save Path
+					</button>
+					<button
+						onClick={() => openEditor('downloadPath')}
+						disabled={pathMutationPending}
+						className="px-2.5 py-1.5 rounded text-[10px] font-medium disabled:opacity-50"
+						style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+					>
+						Change Download Path
+					</button>
+				</div>
+				{editorMode && (
+					<div className="mt-1.5 rounded border p-2 space-y-2" style={{ ...cellBase }}>
+						<div className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+							{editorMode === 'savePath' ? 'Change Save Path' : 'Change Download Path'}
+						</div>
+						<input
+							type="text"
+							value={inputValue}
+							onChange={(e) => setInputValue(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === 'Enter') handlePathSave()
+								if (e.key === 'Escape') setEditorMode(null)
+							}}
+							className="w-full px-3 py-2 rounded border text-xs"
+							style={{
+								backgroundColor: 'var(--bg-secondary)',
+								borderColor: 'var(--border)',
+								color: 'var(--text-primary)',
+							}}
+							autoFocus
+						/>
+						<div className="flex gap-2">
+							<button
+								onClick={() => setEditorMode(null)}
+								className="px-2.5 py-1.5 rounded text-[10px] font-medium"
+								style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-muted)' }}
+							>
+								Cancel
+							</button>
+							<button
+								onClick={handlePathSave}
+								disabled={!inputValue.trim() || pathMutationPending}
+								className="px-2.5 py-1.5 rounded text-[10px] font-medium disabled:opacity-50"
+								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
+							>
+								{pathMutationPending ? 'Saving...' : 'Save'}
+							</button>
+						</div>
+					</div>
+				)}
+				{properties.comment && (
+					<div className="mt-1.5">
+						<InfoCell label="Comment" value={properties.comment} wide />
 					</div>
 				)}
 			</fieldset>
@@ -797,3 +890,5 @@ export function TorrentDetailsPanel({ hash, name, category, tags, expanded, onTo
 		</div>
 	)
 }
+
+
